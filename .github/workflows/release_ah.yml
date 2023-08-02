@@ -31,6 +31,7 @@ jobs:
           echo "${{ secrets.ah_token != '' }}"
           echo "${{ secrets.ansible_galaxy_api_key != '' }}"
           [[ "${{ secrets.ah_token_mod != '' }}" ]] || { echo "ah_token is required to publish on automation hub" ; exit 1; }
+          TARBALL=$(ls -1 ./*.tar.gz)
         # [[ "${{ secrets.ah_token != '' }}" ]] || { echo "ah_token is required to publish on automation hub" ; exit 1; }
         # TARBALL=$(ls -1 ./*.tar.gz)
         # cat << EOF > ansible.cfg

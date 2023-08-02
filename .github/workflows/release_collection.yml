@@ -31,6 +31,7 @@ jobs:
 
   release_galaxy:
     uses: KB-perByte/hold_gha/.github/workflows/release_galaxy.yml@main
+    needs: [release_automation_hub]
     with:
       environment: release
     secrets:

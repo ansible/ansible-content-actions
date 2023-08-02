@@ -28,10 +28,9 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: "Build the collection"
-        run: |
-          ansible-galaxy collection build -v --force
-
+      # - name: "Build the collection"
+      #   run: |
+      #     ansible-galaxy collection build -v --force
       - name: "Publish the collection on Automation Hub"
         if: ${{ inputs.ah_publish }}
         run: |
@@ -60,10 +59,9 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: "Build the collection"
-        run: |
-          ansible-galaxy collection build -v --force
-
+      # - name: "Build the collection"
+      #   run: |
+      #     ansible-galaxy collection build -v --force
       - name: "Publish the collection on Galaxy"
         if: ${{ inputs.galaxy_publish }}
         run: |

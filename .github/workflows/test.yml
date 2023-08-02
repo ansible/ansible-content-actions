@@ -1,0 +1,56 @@
+name: test
+on:
+  pull_request:
+jobs:
+  pre:
+    name: pre
+    runs-on: ubuntu-22.04
+    outputs:
+      matrix: ${{ steps.generate_matrix.outputs.matrix }}
+    steps:
+      - name: Determine matrix
+        id: generate_matrix
+        uses: coactions/dynamic-matrix@v1
+        with:
+          min_python: "3.11"
+          max_python: "3.11"
+          other_names: |
+            lint
+            docs
+  test:
+    needs: pre
+    name: ${{ matrix.name || matrix.tox_env }}
+    runs-on: ${{ matrix.runs-on || 'ubuntu-latest' }}
+    strategy:
+      fail-fast: true
+      matrix: ${{ fromJson(needs.pre.outputs.matrix) }}
+    steps:
+      - name: Check out src from Git
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0 # needed by setuptools-scm
+          submodules: recursive
+
+      - name: Install a default Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python_version }}
+
+      - name: Install dependencies
+        run: |
+          python3 -m pip install 'tox>=4.0.0'
+
+      - name: Run tox -e ${{ matrix.passed_name }}
+        run: |
+          ${{ matrix.PREFIX }} tox -e ${{ matrix.passed_name }}
+
+  check: # This job does nothing and is only used for the branch protection
+    if: always()
+    needs:
+      - test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Decide whether the needed jobs succeeded or failed
+        uses: re-actors/alls-green@release/v1
+        with:
+          jobs: ${{ toJSON(needs) }}

@@ -1,0 +1,25 @@
+---
+name: Refresh the automation hub token
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: The deployment environment
+        required: true
+        type: string
+    secrets:
+      ah_token:
+        required: true
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - name: Refresh the automation hub token
+        run: >-
+          curl https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token
+          -d grant_type=refresh_token
+          -d client_id=cloud-services
+          -d refresh_token="${{ secrets.ah_token }}"
+          --fail --silent --show-error --output /dev/null

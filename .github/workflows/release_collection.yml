@@ -35,7 +35,10 @@ jobs:
       - name: "Publish the collection on Automation Hub"
         if: ${{ inputs.ah_publish }}
         run: |
+          echo "${{ secrets.ah_token != '' }}"
+          echo "${{ secrets.ansible_galaxy_api_key != '' }}"
           [[ "${{ secrets.ah_token != '' }}" ]] || { echo "ah_token is required to publish on automation hub" ; exit 0; }
+          echo "${{ secrets.ah_token != '' }}"
           TARBALL=$(ls -1 ./*.tar.gz)
           cat << EOF > ansible.cfg
           [galaxy]
@@ -43,6 +46,7 @@ jobs:
           [galaxy_server.rh_automation_hub]
           url=https://cloud.redhat.com/api/automation-hub/
           auth_url=https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token
+          echo "${{ secrets.ah_token != '' }}"
           rm ansible.cfg
 
         # token=${{ secrets.ah_token }}
@@ -52,7 +56,7 @@ jobs:
   release_galaxy:
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
-    needs: [release_automation_hub]
+    # needs: [release_automation_hub]
     steps:
       - uses: actions/checkout@v3
 
@@ -63,6 +67,7 @@ jobs:
       - name: "Publish the collection on Galaxy"
         if: ${{ inputs.galaxy_publish }}
         run: |
+          echo "${{ secrets.ansible_galaxy_api_key != '' }}"
           [[ "${{ secrets.ansible_galaxy_api_key != '' }}" ]] || { echo "ansible_galaxy_api_key is required to publish on galaxy" ; exit 0; }
           TARBALL=$(ls -1 ./*.tar.gz)
         # ansible-galaxy collection publish "${TARBALL}" --api-key "${{ secrets.ansible_galaxy_api_key }}"

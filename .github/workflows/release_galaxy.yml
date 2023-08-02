@@ -31,6 +31,5 @@ jobs:
           echo "${{ secrets.ah_token != '' }}"
           echo "${{ secrets.ansible_galaxy_api_key != '' }}"
           [[ "${{ secrets.ansible_galaxy_api_key != '' }}" ]] || { echo "ansible_galaxy_api_key is required to publish on galaxy" ; exit 1; }
-          TARBALL=$(ls -1 ./*.tar.gz)
         # TARBALL=$(ls -1 ./*.tar.gz)
         # ansible-galaxy collection publish "${TARBALL}" --api-key "${{ secrets.ansible_galaxy_api_key }}"

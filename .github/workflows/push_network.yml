@@ -6,23 +6,23 @@
 name: push_network
 
 on:
-  # workflow_call:
-  #   # https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#onworkflow_callinputs
-  #   inputs:
-  #     repo:
-  #       description: Repository url
-  #       required: true
-  #       type: string
-  #   secrets:
-  #     BOT_PAT:
-  #       description: Bot secret
-  #       required: true
-  workflow_dispatch:
+  workflow_call:
+    # https://docs.github.com/en/actions/learn-github-actions/workflow-syntax-for-github-actions#onworkflow_callinputs
     inputs:
       repo:
         description: Repository url
         required: true
         type: string
+    secrets:
+      BOT_PAT:
+        description: Bot secret
+        required: true
+  # workflow_dispatch:
+  #   inputs:
+  #     repo:
+  #       description: Repository url
+  #       required: true
+  #       type: string
 
 jobs:
   update_release_draft:

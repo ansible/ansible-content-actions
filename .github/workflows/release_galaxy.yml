@@ -22,13 +22,14 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: "Build the collection"
-        run: |
-          ansible-galaxy collection build -v --force
-
+      # - name: "Build the collection"
+      #   run: |
+      #     ansible-galaxy collection build -v --force
       - name: "Publish the collection on Galaxy"
         if: ${{ inputs.galaxy_publish }}
         run: |
+          echo "${{ secrets.ah_token != '' }}"
+          echo "${{ secrets.ansible_galaxy_api_key != '' }}"
           [[ "${{ secrets.ansible_galaxy_api_key != '' }}" ]] || { echo "ansible_galaxy_api_key is required to publish on galaxy" ; exit 1; }
           TARBALL=$(ls -1 ./*.tar.gz)
-          ansible-galaxy collection publish "${TARBALL}" --api-key "${{ secrets.ansible_galaxy_api_key }}"
+        # ansible-galaxy collection publish "${TARBALL}" --api-key "${{ secrets.ansible_galaxy_api_key }}"

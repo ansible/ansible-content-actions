@@ -1,5 +1,5 @@
 ---
-name: Release the ansible collection
+name: Release the Ansible Collection
 on:
   workflow_call:
     inputs:

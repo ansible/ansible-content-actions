@@ -1,5 +1,5 @@
 ---
-name: Release the ansible collection
+name: Galaxy Release
 on:
   workflow_call:
     inputs:

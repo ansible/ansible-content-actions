@@ -1,0 +1,43 @@
+---
+name: Automation Hub Release
+on: # yamllint disable-line rule:truthy
+  workflow_call:
+    inputs:
+      ah_publish:
+        description: Publish the collection on automation hub
+        default: true
+        type: boolean
+      environment:
+        description: The deployment environment
+        required: true
+        type: string
+    secrets:
+      ah_token:
+        required: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: "Build the collection"
+        run: |
+          ansible-galaxy collection build -v --force
+
+      - name: "Publish the collection on Automation Hub"
+        if: ${{ inputs.ah_publish }}
+        run: |
+          [[ "${{ secrets.ah_token != '' }}" ]] || { echo "ah_token is required to publish on automation hub" ; exit 1; }
+          TARBALL=$(ls -1 ./*.tar.gz)
+          cat << EOF > ansible.cfg
+          [galaxy]
+          server_list = rh_automation_hub
+          [galaxy_server.rh_automation_hub]
+          url=https://cloud.redhat.com/api/automation-hub/
+          auth_url=https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token
+          token=${{ secrets.ah_token }}
+          EOF
+          ansible-galaxy collection publish "${TARBALL}"
+          rm ansible.cfg

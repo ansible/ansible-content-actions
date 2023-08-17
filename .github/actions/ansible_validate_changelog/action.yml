@@ -1,0 +1,33 @@
+name: ansible_validate_changelog
+description: Ensure a valid changelog has been added to the pull request.
+
+inputs:
+  path:
+    description: |
+      Path to the collection to validate changelog from.
+    required: false
+    default: "."
+  base_ref:
+    description: The pull request base ref.
+    required: false
+    default: ${{ github.event.pull_request.base.ref }}
+
+runs:
+  using: composite
+  steps:
+    - name: Setup python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.9"
+
+    - name: Install python dependencies
+      run: |
+        pip install -U pyyaml
+      shell: bash
+
+    - name: Validate changelog
+      run: >-
+        python3 ${{ github.action_path }}/validate_changelog.py
+        --ref ${{ inputs.base_ref }}
+      shell: bash
+      working-directory: ${{ inputs.path }}

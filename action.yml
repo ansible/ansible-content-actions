@@ -20,23 +20,24 @@ inputs:
     required: false
     default: ""
 runs:
-  - ansible-lint:
-    using: composite
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+  using: composite
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+      # if: ${{ github.job == 'ansible-lint' }}
 
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.x
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      if: ${{ github.job == 'ansible-lint' }}
+      with:
+        python-version: 3.x
 
-      - name: Install Ansible and dependencies
-        shell: bash
-        run: |
-          python -m pip install --upgrade pip
-          pip install ansible ansible-lint
+    - name: Install Ansible and dependencies
+      shell: bash
+      run: |
+        python -m pip install --upgrade pip
+        pip install ansible ansible-lint
 
-      - name: Run Ansible-lint
-        shell: bash
-        run: ansible-lint
+    - name: Run Ansible-lint
+      shell: bash
+      run: ansible-lint

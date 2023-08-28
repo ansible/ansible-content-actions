@@ -21,13 +21,18 @@ inputs:
     default: ""
 runs:
   steps:
-    - name: Run ansible-lint
-      using: docker
-      image: docker://ghcr.io/ansible/creator-ee:v0.19.0
-      entrypoint: /usr/local/bin/ansible-lint
-      env:
-        # These tell ansible-lint to use github compatible annotation format:
-        GITHUB_ACTIONS: "true"
-        GITHUB_WORKFLOW: "{{ github.workflow.name }}"
-      args:
-        - ${{ inputs.path }}
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.x
+
+    - name: Install Ansible and dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install ansible ansible-lint
+
+    - name: Run Ansible-lint
+      run: ansible-lint

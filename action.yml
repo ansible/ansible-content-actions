@@ -47,4 +47,4 @@ runs:
     # run sanity with declared matrix
     - name: Run sanity
       if: ${{ github.job == 'sanity' }}
-      uses: ./.github/workflows/sanity.yml
+      uses: ./.github/actions/sanity/action.yml

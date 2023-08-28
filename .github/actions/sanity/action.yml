@@ -1,5 +1,5 @@
 name: Sanity tests
-on:
+on: # yamllint disable-line rule:truthy
   workflow_call:
     inputs:
       collection_pre_install:

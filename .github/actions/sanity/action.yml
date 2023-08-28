@@ -132,6 +132,9 @@ runs:
 
     name: "py${{ matrix.python-version }} / ${{ matrix.os }} / ${{ matrix.ansible-version }}"
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
       - name: Checkout the collection repository
         uses: ansible-network/github_actions/.github/actions/checkout_dependency@main
         with:

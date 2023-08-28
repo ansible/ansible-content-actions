@@ -1,5 +1,7 @@
 ---
-name: test_collection_mono
+name: ansible-content-action
+description: This is a monolythic action for Ansible contnet testing
+author: Sagar Paul
 on: # yamllint disable-line rule:truthy
   workflow_call:
     inputs:
@@ -102,6 +104,10 @@ on: # yamllint disable-line rule:truthy
           ]
         required: false
         type: string
+  release_ah:
+    types: [published]
+  release_gal:
+    types: [published]
 
 jobs:
   ansible-lint:
@@ -215,3 +221,19 @@ jobs:
           '${{ needs.changelog.result }}',
           '${{ needs.sanity.result }}',
           ])"
+
+  release_ah:
+    uses: ansible/devtools/.github/workflows/release_collection.yml@main
+    with:
+      environment: release
+    secrets:
+      ah_token: ${{ secrets.AH_TOKEN }}
+      ansible_galaxy_api_key: ${{ secrets.ANSIBLE_GALAXY_API_KEY }}
+
+  release_gal:
+    uses: ansible/devtools/.github/workflows/release_collection.yml@main
+    with:
+      environment: release
+    secrets:
+      ah_token: ${{ secrets.AH_TOKEN }}
+      ansible_galaxy_api_key: ${{ secrets.ANSIBLE_GALAXY_API_KEY }}

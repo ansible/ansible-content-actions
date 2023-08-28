@@ -149,4 +149,4 @@ runs:
     # run sanity with declared matrix
     - name: Run sanity
       if: ${{ github.job == 'sanity' }}
-      uses: ./.github/actions/sanity/action.yml
+      uses: KB-perByte/.github/actions/sanity/action.yml

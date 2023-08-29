@@ -4,7 +4,6 @@ author: Sagar Paul
 
 runs:
   using: composite
-  # name: "py${{ matrix.python-version }} / ${{ matrix.os }} / ${{ matrix.ansible-version }}"
   steps:
     - name: Checkout code
       uses: actions/checkout@v2
@@ -14,7 +13,6 @@ runs:
       with:
         python-version: 3.x
 
-    # run ansible-lint
     - name: Install Ansible and dependencies
       shell: bash
       run: |

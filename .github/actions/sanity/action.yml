@@ -103,83 +103,84 @@ inputs:
     type: string
 
 runs:
-  sanity:
-    env:
-      PY_COLORS: "1"
-      source_directory: "./source"
-    strategy:
-      fail-fast: false
-      matrix:
-        os:
-          - ubuntu-latest
-        ansible-version:
-          - stable-2.9
-          - stable-2.13
-          - stable-2.14
-          - stable-2.15
-          - milestone
-          - devel
-        python-version:
-          - "3.7"
-          - "3.8"
-          - "3.9"
-          - "3.10"
-          - "3.11"
-        exclude: ${{ fromJSON(inputs.matrix_exclude) }}
-        include: ${{ fromJSON(inputs.matrix_include) }}
-    runs-on: ${{ matrix.os }}
-    continue-on-error: ${{ contains(fromJSON(inputs.unstable), matrix.ansible-version) }}
+  # sanity:
+  env:
+    PY_COLORS: "1"
+    source_directory: "./source"
+  strategy:
+    fail-fast: false
+    matrix:
+      os:
+        - ubuntu-latest
+      ansible-version:
+        - stable-2.9
+        - stable-2.13
+        - stable-2.14
+        - stable-2.15
+        - milestone
+        - devel
+      python-version:
+        - "3.7"
+        - "3.8"
+        - "3.9"
+        - "3.10"
+        - "3.11"
+      exclude: ${{ fromJSON(inputs.matrix_exclude) }}
+      include: ${{ fromJSON(inputs.matrix_include) }}
+  runs-on: ${{ matrix.os }}
+  continue-on-error: ${{ contains(fromJSON(inputs.unstable), matrix.ansible-version) }}
 
-    name: "py${{ matrix.python-version }} / ${{ matrix.os }} / ${{ matrix.ansible-version }}"
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+  using: composite
+  name: "py${{ matrix.python-version }} / ${{ matrix.os }} / ${{ matrix.ansible-version }}"
+  steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-      - name: Checkout the collection repository
-        uses: ansible-network/github_actions/.github/actions/checkout_dependency@main
-        with:
-          path: ${{ env.source_directory }}
-          ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: "0"
+    - name: Checkout the collection repository
+      uses: ansible-network/github_actions/.github/actions/checkout_dependency@main
+      with:
+        path: ${{ env.source_directory }}
+        ref: ${{ github.event.pull_request.head.sha }}
+        fetch-depth: "0"
 
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ matrix.python-version }}
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
 
-      - name: Install ansible-core (${{ matrix.ansible-version }})
-        shell: bash
-        run: python3 -m pip install https://github.com/ansible/ansible/archive/${{ matrix.ansible-version }}.tar.gz --disable-pip-version-check
+    - name: Install ansible-core (${{ matrix.ansible-version }})
+      shell: bash
+      run: python3 -m pip install https://github.com/ansible/ansible/archive/${{ matrix.ansible-version }}.tar.gz --disable-pip-version-check
 
-      - name: Pre install collections dependencies first so the collection install does not
-        shell: bash
-        run: ansible-galaxy collection install --pre ${{ inputs.collection_pre_install }} -p /home/runner/collections/
-        if: ${{ inputs.collection_pre_install != '' && matrix.ansible-version != 'stable-2.9' }}
+    - name: Pre install collections dependencies first so the collection install does not
+      shell: bash
+      run: ansible-galaxy collection install --pre ${{ inputs.collection_pre_install }} -p /home/runner/collections/
+      if: ${{ inputs.collection_pre_install != '' && matrix.ansible-version != 'stable-2.9' }}
 
-      - name: Read collection metadata from galaxy.yml
-        id: identify
-        uses: ansible-network/github_actions/.github/actions/identify_collection@main
-        with:
-          source_path: ${{ env.source_directory }}
+    - name: Read collection metadata from galaxy.yml
+      id: identify
+      uses: ansible-network/github_actions/.github/actions/identify_collection@main
+      with:
+        source_path: ${{ env.source_directory }}
 
-      - name: Build and install the collection
-        uses: ansible-network/github_actions/.github/actions/build_install_collection@main
-        with:
-          install_python_dependencies: false
-          source_path: ${{ env.source_directory }}
-          collection_path: ${{ steps.identify.outputs.collection_path }}
-          tar_file: ${{ steps.identify.outputs.tar_file }}
-          ansible_version: ${{ matrix.ansible-version }}
+    - name: Build and install the collection
+      uses: ansible-network/github_actions/.github/actions/build_install_collection@main
+      with:
+        install_python_dependencies: false
+        source_path: ${{ env.source_directory }}
+        collection_path: ${{ steps.identify.outputs.collection_path }}
+        tar_file: ${{ steps.identify.outputs.tar_file }}
+        ansible_version: ${{ matrix.ansible-version }}
 
-      - name: Print the ansible version
-        shell: bash
-        run: ansible --version
+    - name: Print the ansible version
+      shell: bash
+      run: ansible --version
 
-      - name: Print the python dependencies
-        shell: bash
-        run: python3 -m pip list
+    - name: Print the python dependencies
+      shell: bash
+      run: python3 -m pip list
 
-      - name: Run sanity tests
-        shell: bash
-        run: ansible-test sanity --requirements --color --python ${{ matrix.python-version }}
-        working-directory: ${{ steps.identify.outputs.collection_path }}
+    - name: Run sanity tests
+      shell: bash
+      run: ansible-test sanity --requirements --color --python ${{ matrix.python-version }}
+      working-directory: ${{ steps.identify.outputs.collection_path }}

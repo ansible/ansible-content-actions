@@ -2,17 +2,9 @@ name: Release collection galaxy
 description: This is release collection on galaxy
 author: Sagar Paul
 inputs:
-  environment:
-    description: The deployment environment
+  ansible_galaxy_api_key: # string
+    description: "The Galaxy api key"
     required: true
-    type: string
-  galaxy_publish:
-    default: true
-    description: Publish the collection on galaxy
-    type: boolean
-# secrets:
-#   ansible_galaxy_api_key:
-#     required: false
 runs:
   using: ubuntu-latest
   steps:
@@ -24,9 +16,8 @@ runs:
         ansible-galaxy collection build -v --force
 
     - name: "Publish the collection on Galaxy"
-      if: ${{ inputs.galaxy_publish }}
       shell: bash
       run: |
-        [[ "${{ secrets.ansible_galaxy_api_key != '' }}" ]] || { echo "ansible_galaxy_api_key is required to publish on galaxy" ; exit 1; }
+        [[ "${{ inputs.ansible_galaxy_api_key != '' }}" ]] || { echo "ansible_galaxy_api_key is required to publish on galaxy" ; exit 1; }
         TARBALL=$(ls -1 ./*.tar.gz)
-        ansible-galaxy collection publish "${TARBALL}" --api-key "${{ secrets.ansible_galaxy_api_key }}"
+        ansible-galaxy collection publish "${TARBALL}" --api-key "${{ inputs.ansible_galaxy_api_key }}"

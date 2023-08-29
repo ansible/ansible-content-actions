@@ -2,7 +2,10 @@
 name: ansible-content-action
 description: This is a monolythic action for Ansible contnet testing
 author: Sagar Paul
-
+inputs:
+  ansible_galaxy_api_key: # string
+    description: "The Galaxy api key"
+    required: false
 runs:
   using: composite
   steps:
@@ -20,3 +23,5 @@ runs:
     - name: Release Galaxy"
       if: ${{ github.event == 'published' }}
       uses: KB-perByte/ansible-content-action/.github/actions/release-galaxy@main
+      with:
+        ansible_galaxy_api_key: ${{ secrets.ansible_galaxy_api_key }}

@@ -16,7 +16,7 @@ runs:
       if: ${{ github.job == 'sanity' }}
       uses: KB-perByte/ansible-content-action/.github/actions/sanity@main
 
-    # run sanity with declared matrix
+    # run release galaxy on event publish
     - name: Release Galaxy"
       if: ${{ github.event == 'published' }}
-      uses: KB-perByte/ansible-content-action/.github/actions/ansible-galaxy@main
+      uses: KB-perByte/ansible-content-action/.github/actions/release-galaxy@main

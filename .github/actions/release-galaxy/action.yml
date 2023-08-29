@@ -10,9 +10,9 @@ inputs:
     default: true
     description: Publish the collection on galaxy
     type: boolean
-secrets:
-  ansible_galaxy_api_key:
-    required: false
+# secrets:
+#   ansible_galaxy_api_key:
+#     required: false
 runs:
   using: ubuntu-latest
   steps:

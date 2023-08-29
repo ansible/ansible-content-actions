@@ -24,4 +24,4 @@ runs:
       if: ${{ github.event == 'published' }}
       uses: KB-perByte/ansible-content-action/.github/actions/release-galaxy@main
       with:
-        ansible_galaxy_api_key: ${{ secrets.ansible_galaxy_api_key }}
+        ansible_galaxy_api_key: ${{ inputs.ansible_galaxy_api_key }}

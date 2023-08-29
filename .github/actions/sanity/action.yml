@@ -103,33 +103,6 @@ inputs:
     type: string
 
 runs:
-  # sanity:
-  # env:
-  #   PY_COLORS: "1"
-  #   source_directory: "./source"
-  # strategy:
-  #   fail-fast: false
-  #   matrix:
-  #     os:
-  #       - ubuntu-latest
-  #     ansible-version:
-  #       - stable-2.9
-  #       - stable-2.13
-  #       - stable-2.14
-  #       - stable-2.15
-  #       - milestone
-  #       - devel
-  #     python-version:
-  #       - "3.7"
-  #       - "3.8"
-  #       - "3.9"
-  #       - "3.10"
-  #       - "3.11"
-  #     exclude: ${{ fromJSON(inputs.matrix_exclude) }}
-  #     include: ${{ fromJSON(inputs.matrix_include) }}
-  # runs-on: ${{ matrix.os }}
-  # continue-on-error: ${{ contains(fromJSON(inputs.unstable), matrix.ansible-version) }}
-
   using: composite
   # name: "py${{ matrix.python-version }} / ${{ matrix.os }} / ${{ matrix.ansible-version }}"
   steps:

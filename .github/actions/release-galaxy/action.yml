@@ -20,4 +20,5 @@ runs:
       run: |
         [[ "${{ inputs.ansible_galaxy_api_key != '' }}" ]] || { echo "ansible_galaxy_api_key is required to publish on galaxy" ; exit 1; }
         TARBALL=$(ls -1 ./*.tar.gz)
-        ansible-galaxy collection publish "${TARBALL}" --api-key "${{ inputs.ansible_galaxy_api_key }}"
+
+      # ansible-galaxy collection publish "${TARBALL}" --api-key "${{ inputs.ansible_galaxy_api_key }}"

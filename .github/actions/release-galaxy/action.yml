@@ -6,7 +6,7 @@ inputs:
     description: "The Galaxy api key"
     required: true
 runs:
-  using: ubuntu-latest
+  using: composite
   steps:
     - uses: actions/checkout@v3
 

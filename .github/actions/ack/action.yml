@@ -1,0 +1,38 @@
+name: Ack
+description: Checks labels with PRs
+author: Sagar Paul
+
+runs:
+  using: composite
+
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+
+    # Use of release drafter action for adding semantic labels based on
+    # either title, body or source branch name. We ignore potential failure
+    # of this step.
+    - uses: release-drafter/release-drafter@v5
+      with:
+        # we only want to use the auto-labeler bits:
+        disable-autolabeler: false
+        disable-releaser: true
+      # config from .github/release-drafter.yml
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      continue-on-error: true
+
+    - name: Verify PR label action
+      uses: jesusvasquez333/verify-pr-label-action@v1.4.0
+      with:
+        github-token: "${{ secrets.GITHUB_TOKEN }}"
+        valid-labels: "bug, enhancement, feature, refactoring, major, deprecated, skip-changelog, bot:chronographer:skip"
+        invalid-labels: "help wanted, invalid, feedback-needed, incomplete"
+        pull-request-number: "${{ github.event.pull_request.number }}"
+        disable-reviews: true
+
+    - name: Update release notes if this is already merged
+      if: github.event.pull_request.merged == true
+      uses: release-drafter/release-drafter@v5
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

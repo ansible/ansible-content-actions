@@ -19,6 +19,10 @@ runs:
       if: ${{ github.job == 'sanity' }}
       uses: KB-perByte/ansible-content-action/.github/actions/sanity@main
 
+    - name: Run ack
+      if: ${{ github.job == 'ack' }}
+      uses: KB-perByte/ansible-content-action/.github/actions/ack@main
+
     # run release galaxy on event publish
     - name: Release Galaxy"
       if: ${{ github.event == 'published' }}

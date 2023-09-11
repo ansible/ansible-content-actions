@@ -26,7 +26,7 @@ runs:
       if: ${{ github.job == 'ack' }}
       uses: KB-perByte/ansible-content-action/.github/actions/ack@main
       env:
-        gh_token: ${{ inputs.gh_token }}
+        GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
 
     # - name: Run ack
     #   if: ${{ github.job == 'ack' }}

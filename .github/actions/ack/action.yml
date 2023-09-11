@@ -2,7 +2,7 @@ name: Ack
 description: Checks labels with PRs
 author: Sagar Paul
 inputs:
-  gh-token: # string
+  gh_token: # string
     description: "The GH token"
     required: true
 runs:
@@ -22,13 +22,13 @@ runs:
         disable-releaser: true
       # config from .github/release-drafter.yml
       env:
-        GITHUB_TOKEN: ${{ inputs.gh-token }}
+        GITHUB_TOKEN: ${{ inputs.gh_token }}
       continue-on-error: true
 
     - name: Verify PR label action
       uses: jesusvasquez333/verify-pr-label-action@v1.4.0
       with:
-        github-token: "${{ inputs.gh-token }}"
+        github-token: "${{ inputs.gh_token }}"
         valid-labels: "bug, enhancement, feature, refactoring, major, deprecated, skip-changelog, bot:chronographer:skip"
         invalid-labels: "help wanted, invalid, feedback-needed, incomplete"
         pull-request-number: "${{ github.event.pull_request.number }}"
@@ -38,4 +38,4 @@ runs:
       if: github.event.pull_request.merged == true
       uses: release-drafter/release-drafter@v5
       env:
-        GITHUB_TOKEN: ${{ inputs.gh-token }}
+        GITHUB_TOKEN: ${{ inputs.gh_token }}

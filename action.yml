@@ -6,6 +6,9 @@ inputs:
   ansible_galaxy_api_key: # string
     description: "The Galaxy api key"
     required: false
+  gh_token: # string
+    description: "The GH token"
+    required: false
 runs:
   using: composite
   steps:
@@ -22,8 +25,8 @@ runs:
     - name: Run ack
       if: ${{ github.job == 'ack' }}
       uses: KB-perByte/ansible-content-action/.github/actions/ack@main
-      with:
-        gh-token: ${{ secrets.GITHUB_TOKEN }}
+      env:
+        gh_token: ${{ inputs.gh_token }}
 
     # - name: Run ack
     #   if: ${{ github.job == 'ack' }}

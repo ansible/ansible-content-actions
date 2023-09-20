@@ -22,19 +22,9 @@ runs:
       if: ${{ github.event_name == 'pull_request' }}
       uses: KB-perByte/ansible-content-action/.github/actions/sanity@main
 
-    # - name: Run ack
-    #   if: ${{ github.event_name == 'pull_request' }}
-    #   uses: KB-perByte/ansible-content-action/.github/actions/ack@main
-    #   env:
-    #     GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
-
-    # - name: Run ack
-    #   if: ${{ github.job == 'ack' }}
-    #   uses: KB-perByte/devtools/.github/workflows/ack.yml@main
-
     # run release galaxy on event publish
     - name: Release Galaxy"
-      if: ${{ (github.event_name == 'release') && (github.event == 'published') }}
+      if: ${{ (github.event_name == 'release') }} #  && (github.event == 'published')
       uses: KB-perByte/ansible-content-action/.github/actions/release-galaxy@main
       with:
         ansible_galaxy_api_key: ${{ inputs.ansible_galaxy_api_key }}

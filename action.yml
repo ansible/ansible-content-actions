@@ -14,16 +14,16 @@ runs:
   steps:
     # run ansible-lint
     - name: Run ansible-lint
-      if: ${{ github.job == 'ansible-lint' }}
+      if: ${{ github.event_name == 'pull_request' }}
       uses: KB-perByte/ansible-content-action/.github/actions/ansible-lint@main
 
     # run sanity with declared matrix
     - name: Run sanity
-      if: ${{ github.job == 'sanity' }}
+      if: ${{ github.event_name == 'pull_request' }}
       uses: KB-perByte/ansible-content-action/.github/actions/sanity@main
 
     - name: Run ack
-      if: ${{ github.job == 'ack' }}
+      if: ${{ github.event_name == 'pull_request' }}
       uses: KB-perByte/ansible-content-action/.github/actions/ack@main
       env:
         GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
@@ -34,7 +34,7 @@ runs:
 
     # run release galaxy on event publish
     - name: Release Galaxy"
-      if: ${{ github.event == 'published' }}
+      if: ${{ (github.event_name == 'release') && (github.event == 'published') }}
       uses: KB-perByte/ansible-content-action/.github/actions/release-galaxy@main
       with:
         ansible_galaxy_api_key: ${{ inputs.ansible_galaxy_api_key }}

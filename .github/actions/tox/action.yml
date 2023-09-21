@@ -5,12 +5,39 @@ inputs:
   GITHUB_TOKEN: # string
     description: "The GH token"
     required: true
+outputs:
+  matrix: ${{ steps.generate_matrix.outputs.matrix }}
 runs:
   using: composite
 
   steps:
+    - name: Determine matrix
+      id: generate_matrix
+      uses: coactions/dynamic-matrix@v1
+      with:
+        min_python: "3.7"
+        max_python: "3.11"
+        default_python: "3.11" # used by jobs in other_names
+        other_names: |
+          lint
+
     - name: "Checkout operation"
       uses: actions/checkout@v4
 
-    - name: "Invoke tox"
-      uses: tox-dev/tox-ansible/.github/workflows/run.yml@main
+    - name: Set up Python ${{ matrix.python_version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python_version }}
+
+    - name: Install tox
+      run: python3 -m pip install --upgrade "tox>=4.0.2"
+
+    - name: Log Python info (${{ matrix.python_version }})
+      run: |
+        command -v python
+        python --version --version
+        python3 -m pip freeze --all
+
+    - name: "tox -e ${{ matrix.passed_name }}"
+      continue-on-error: ${{ matrix.devel || false }}
+      run: python3 -m tox -e ${{ matrix.passed_name }}

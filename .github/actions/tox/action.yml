@@ -1,0 +1,16 @@
+name: Test tox matrix
+description: Test collection using tox matrix
+author: Sagar Paul
+inputs:
+  GITHUB_TOKEN: # string
+    description: "The GH token"
+    required: true
+runs:
+  using: composite
+
+  steps:
+    - name: "Checkout operation"
+      uses: actions/checkout@v4
+
+    - name: "Invoke tox"
+      uses: tox-dev/tox-ansible/.github/workflows/run.yml@main

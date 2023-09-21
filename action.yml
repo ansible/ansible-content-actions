@@ -22,6 +22,11 @@ runs:
       if: ${{ github.event_name == 'pull_request' }}
       uses: KB-perByte/ansible-content-action/.github/actions/sanity@main
 
+    # run sanity with declared matrix
+    - name: Run tox
+      if: ${{ github.event_name == 'pull_request' }}
+      uses: KB-perByte/ansible-content-action/.github/actions/tox@main
+
     # run release galaxy on event release
     - name: Release Galaxy
       if: ${{ (github.event_name == 'release') }}
@@ -31,7 +36,7 @@ runs:
 
     # run release ah on event release
     - name: Release Automation Hub
-      needs: Release Galaxy
+      # needs: Release Galaxy
       if: ${{ (github.event_name == 'release') }}
       uses: KB-perByte/ansible-content-action/.github/actions/release-ah@main
       with:

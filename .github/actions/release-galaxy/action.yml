@@ -1,14 +1,15 @@
-name: Release collection galaxy
-description: This is release collection on galaxy
+name: Release collection Galaxy
+description: This releases collection on Galaxy
 author: Sagar Paul
 inputs:
   ansible_galaxy_api_key: # string
-    description: "The Galaxy api key"
+    description: "The Galaxy API key"
     required: true
 runs:
   using: composite
   steps:
-    - uses: actions/checkout@v3
+    - name: "Checkout operation"
+      uses: actions/checkout@v4
 
     - name: "Build the collection"
       shell: bash
@@ -20,5 +21,4 @@ runs:
       run: |
         [[ "${{ inputs.ansible_galaxy_api_key != '' }}" ]] || { echo "ansible_galaxy_api_key is required to publish on galaxy" ; exit 1; }
         TARBALL=$(ls -1 ./*.tar.gz)
-
       # ansible-galaxy collection publish "${TARBALL}" --api-key "${{ inputs.ansible_galaxy_api_key }}"

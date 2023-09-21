@@ -22,9 +22,17 @@ runs:
       if: ${{ github.event_name == 'pull_request' }}
       uses: KB-perByte/ansible-content-action/.github/actions/sanity@main
 
-    # run release galaxy on event publish
-    - name: Release Galaxy"
-      if: ${{ (github.event_name == 'release') }} #  && (github.event == 'published')
+    # run release galaxy on event release
+    - name: Release Galaxy
+      if: ${{ (github.event_name == 'release') }}
       uses: KB-perByte/ansible-content-action/.github/actions/release-galaxy@main
       with:
         ansible_galaxy_api_key: ${{ inputs.ansible_galaxy_api_key }}
+
+    # run release ah on event release
+    - name: Release Automation Hub
+      needs: Release Galaxy
+      if: ${{ (github.event_name == 'release') }}
+      uses: KB-perByte/ansible-content-action/.github/actions/release-ah@main
+      with:
+        ansible_galaxy_api_key: ${{ inputs.ah_token }}

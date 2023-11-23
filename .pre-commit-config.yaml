@@ -1,91 +1,37 @@
 ---
 repos:
-  - repo: https://github.com/PyCQA/isort
-    rev: 5.12.0
-    hooks:
-      - id: isort
-        args: ["--filter-files"]
-
   - repo: https://github.com/pre-commit/mirrors-prettier
-    rev: "v3.0.0"
+    rev: v3.0.3
     hooks:
       - id: prettier
-        additional_dependencies:
-          - prettier
-          - prettier-plugin-toml
+        always_run: true
 
-  - repo: https://github.com/psf/black
-    rev: 23.7.0
+  - repo: https://github.com/PyCQA/doc8
+    rev: "v1.1.1"
     hooks:
-      - id: black
-
-  - repo: https://github.com/Lucas-C/pre-commit-hooks
-    rev: v1.5.1
-    hooks:
-      - id: remove-tabs
-
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
-    hooks:
-      - id: trailing-whitespace
-      - id: check-merge-conflict
-      - id: end-of-file-fixer
-      - id: no-commit-to-branch
-      - id: fix-byte-order-marker
-      - id: debug-statements
+      - id: doc8
 
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.2.5
+    rev: v2.2.6
     hooks:
       - id: codespell
 
-  - repo: https://github.com/pycqa/flake8
-    rev: 6.0.0
+  - repo: https://github.com/pre-commit/pre-commit-hooks.git
+    rev: v4.5.0
     hooks:
-      - id: flake8
-        additional_dependencies:
-          - darglint
-          - flake8-2020 >= 1.6.0
-          - flake8-docstrings # uses pydocstyle
-          - flake8-isort >= 4.1.1
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+      - id: mixed-line-ending
+      - id: check-byte-order-marker
+      - id: check-executables-have-shebangs
+      - id: check-merge-conflict
+      - id: debug-statements
+        language_version: python3
 
-  - repo: https://github.com/asottile/pyupgrade
-    # keep it after flake8
-    rev: v3.9.0
+  - repo: https://github.com/adrienverge/yamllint.git
+    rev: v1.32.0
     hooks:
-      - id: pyupgrade
-        args: ["--py39-plus"]
-
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.4.1
-    hooks:
-      - id: mypy
-        additional_dependencies:
-          - types-PyYAML
-          - pygithub
-          - pytest
-          - types-requests
-
-  - repo: https://github.com/pycqa/pylint
-    rev: v3.0.0a6
-    hooks:
-      - id: pylint
-        additional_dependencies:
-          - PyYAML
-          - pygithub
-          - pytest
-          - semver
-
-  - repo: local
-    hooks:
-      - id: pytest-check
-        name: pytest-check
-        entry: pytest .github scripts -vvvv
-        types: [python]
-        language: python
-        pass_filenames: false
-        always_run: true
-        additional_dependencies:
-          - pytest
-          - pygithub
-          - pyyaml
+      - id: yamllint
+        files: \.(yaml|yml)$
+        types: [file, yaml]
+        entry: yamllint --strict

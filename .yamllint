@@ -1,0 +1,15 @@
+extends: default
+rules:
+  comments:
+    # prettier compatibility
+    min-spaces-from-content: 1
+  # caused false-positives with file sequence items being commented
+  # https://github.com/adrienverge/yamllint/issues/384
+  comments-indentation: disable
+  # ansible standards do require --- prefix
+  document-start: disable
+  # we need to decide if we want to impose one or not
+  line-length: disable
+  truthy:
+    # "on:" is perfectly valid key on github actions:
+    check-keys: false

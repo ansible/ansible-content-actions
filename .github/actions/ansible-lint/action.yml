@@ -1,3 +1,4 @@
+---
 name: Ansible lint test job
 description: This ansible-lint workflow
 author: Sagar Paul

@@ -1,5 +1,5 @@
 ---
-name: ansible-content-action
+name: ansible-github-actions
 description: This is a monolithic action for Ansible contnet testing
 author: Sagar Paul
 inputs:
@@ -15,22 +15,22 @@ runs:
     # run ansible-lint
     - name: Run ansible-lint
       if: ${{ github.event_name == 'pull_request' }}
-      uses: KB-perByte/ansible-content-action/.github/actions/ansible-lint@main
+      uses: ansible/ansible-github-actions/.github/actions/ansible-lint@main
 
     # run sanity with declared matrix
     - name: Run sanity
       if: ${{ github.event_name == 'pull_request' }}
-      uses: KB-perByte/ansible-content-action/.github/actions/sanity@main
+      uses: ansible/ansible-github-actions/.github/actions/sanity@main
 
     # run sanity with declared matrix
     - name: Run tox
       if: ${{ github.event_name == 'pull_request' }}
-      uses: KB-perByte/ansible-content-action/.github/actions/tox@main
+      uses: ansible/ansible-github-actions/.github/actions/tox@main
 
     # run release galaxy on event release
     - name: Release Galaxy
       if: ${{ (github.event_name == 'release') }}
-      uses: KB-perByte/ansible-content-action/.github/actions/release-galaxy@main
+      uses: ansible/ansible-github-actions/.github/actions/release-galaxy@main
       with:
         ansible_galaxy_api_key: ${{ inputs.ansible_galaxy_api_key }}
 
@@ -38,6 +38,6 @@ runs:
     - name: Release Automation Hub
       # needs: Release Galaxy
       if: ${{ (github.event_name == 'release') }}
-      uses: KB-perByte/ansible-content-action/.github/actions/release-ah@main
+      uses: ansible/ansible-github-actions/.github/actions/release-ah@main
       with:
         ansible_galaxy_api_key: ${{ inputs.ah_token }}

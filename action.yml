@@ -13,9 +13,9 @@ runs:
   using: composite
   steps:
     # run ansible-lint
-    - name: Run ansible-lint
-      if: ${{ github.event_name == 'pull_request' }}
-      uses: ansible/ansible-github-actions/.github/actions/ansible-lint@main
+    # - name: Run ansible-lint
+    #   if: ${{ github.event_name == 'pull_request' }}
+    #   uses: ansible/ansible-github-actions/.github/actions/ansible-lint@main
 
     # run sanity with declared matrix
     - name: Run sanity

@@ -5,8 +5,8 @@ inputs:
   GITHUB_TOKEN: # string
     description: "The GH token"
     required: true
-outputs:
-  matrix: ${{ steps.generate_matrix.outputs.matrix }}
+# outputs:
+#   matrix: ${{ steps.generate_matrix.outputs.matrix }}
 runs:
   using: composite
 

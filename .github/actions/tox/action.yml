@@ -30,9 +30,11 @@ runs:
         python-version: ${{ matrix.python_version }}
 
     - name: Install tox
+      shell: bash
       run: python3 -m pip install --upgrade "tox>=4.0.2"
 
     - name: Log Python info (${{ matrix.python_version }})
+      shell: bash
       run: |
         command -v python
         python --version --version
@@ -40,4 +42,5 @@ runs:
 
     - name: "tox -e ${{ matrix.passed_name }}"
       continue-on-error: ${{ matrix.devel || false }}
+      shell: bash
       run: python3 -m tox -e ${{ matrix.passed_name }}

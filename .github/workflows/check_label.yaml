@@ -12,7 +12,7 @@ on:
 jobs:
   ack:
     runs-on: ubuntu-latest
-    environment: ack
+    environment: Check label
     permissions:
       checks: write
       contents: write

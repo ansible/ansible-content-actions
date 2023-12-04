@@ -37,7 +37,7 @@ jobs:
   test:
     needs: tox-matrix
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         entry: ${{ fromJson(needs.tox-matrix.outputs.envlist) }}
     name: ${{ matrix.entry.name }}

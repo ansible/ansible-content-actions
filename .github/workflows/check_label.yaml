@@ -1,13 +1,11 @@
-# ack workflow runs on any change made to a pull-request and aims to verify
-# that is following our practices. Initial version is checking correct label
-# presence.
+---
 name: "Check label"
 on:
   issues:
     types: [opened, reopened]
   pull_request_target:
     types: [opened, labeled, unlabeled, synchronize]
-  workflow_call: # allows reuse of this workflow from other devtools repos
+  workflow_call:
     secrets:
       BOT_PAT:
         required: false
@@ -17,7 +15,7 @@ jobs:
     environment: ack
     permissions:
       checks: write
-      contents: write # needed to update release
+      contents: write
       pull-requests: write
     steps:
       - name: Checkout
@@ -37,8 +35,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         continue-on-error: true
 
-      # Ensure that one of the required labels is present and none of the undesired is absent
-      # See https://github.com/jesusvasquez333/verify-pr-label-action
       - name: Verify PR label action
         if: ${{ github.event_name == 'pull_request' }}
         uses: jesusvasquez333/verify-pr-label-action@v1.4.0

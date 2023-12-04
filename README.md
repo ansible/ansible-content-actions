@@ -1,4 +1,4 @@
-# ansible-content-action
+# ansible-github-action
 
 holds all the GHA just to reference
 be wise

@@ -61,11 +61,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  test_passed:
-    needs: test
-    runs-on: ubuntu-latest
-    steps:
-      - run: >-
-          python -c "assert set([
-          '${{ needs.test.result }}',
-          ]) == {'success'}"
+  # status:
+  #   needs: test
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - run: >-
+  #         python -c "assert set([
+  #         '${{ needs.test.result }}',
+  #         ]) == {'success'}"

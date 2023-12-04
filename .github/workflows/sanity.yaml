@@ -1,4 +1,4 @@
-name: tox-ansible
+name: sanity
 
 on:
   pull_request:
@@ -10,6 +10,7 @@ on:
 
 jobs:
   tox-matrix:
+    name: Matrix Sanity
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -36,7 +37,7 @@ jobs:
   test:
     needs: tox-matrix
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         entry: ${{ fromJson(needs.tox-matrix.outputs.envlist) }}
     name: ${{ matrix.entry.name }}

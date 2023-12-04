@@ -11,33 +11,33 @@ inputs:
     required: false
 runs:
   using: composite
-  steps:
-    # run ansible-lint
-    # - name: Run ansible-lint
-    #   if: ${{ github.event_name == 'pull_request' }}
-    #   uses: ansible/ansible-github-actions/.github/actions/ansible-lint@main
+  # steps:
+  #   # run ansible-lint
+  #   # - name: Run ansible-lint
+  #   #   if: ${{ github.event_name == 'pull_request' }}
+  #   #   uses: ansible/ansible-github-actions/.github/actions/ansible-lint@main
 
-    # run sanity with declared matrix
-    - name: Run sanity
-      if: ${{ github.event_name == 'pull_request' }}
-      uses: ansible/ansible-github-actions/.github/actions/sanity@main
+  #   # run sanity with declared matrix
+  #   - name: Run sanity
+  #     if: ${{ github.event_name == 'pull_request' }}
+  #     uses: ansible/ansible-github-actions/.github/actions/sanity@main
 
-    # run sanity with declared matrix
-    - name: Run tox
-      if: ${{ github.event_name == 'pull_request' }}
-      uses: ansible/ansible-github-actions/.github/actions/tox@main
+  #   # run sanity with declared matrix
+  #   - name: Run tox
+  #     if: ${{ github.event_name == 'pull_request' }}
+  #     uses: ansible/ansible-github-actions/.github/actions/tox@main
 
-    # run release galaxy on event release
-    - name: Release Galaxy
-      if: ${{ (github.event_name == 'release') }}
-      uses: ansible/ansible-github-actions/.github/actions/release-galaxy@main
-      with:
-        ansible_galaxy_api_key: ${{ inputs.ansible_galaxy_api_key }}
+  #   # run release galaxy on event release
+  #   - name: Release Galaxy
+  #     if: ${{ (github.event_name == 'release') }}
+  #     uses: ansible/ansible-github-actions/.github/actions/release-galaxy@main
+  #     with:
+  #       ansible_galaxy_api_key: ${{ inputs.ansible_galaxy_api_key }}
 
-    # run release ah on event release
-    - name: Release Automation Hub
-      # needs: Release Galaxy
-      if: ${{ (github.event_name == 'release') }}
-      uses: ansible/ansible-github-actions/.github/actions/release-ah@main
-      with:
-        ansible_galaxy_api_key: ${{ inputs.ah_token }}
+  #   # run release ah on event release
+  #   - name: Release Automation Hub
+  #     # needs: Release Galaxy
+  #     if: ${{ (github.event_name == 'release') }}
+  #     uses: ansible/ansible-github-actions/.github/actions/release-ah@main
+  #     with:
+  #       ansible_galaxy_api_key: ${{ inputs.ah_token }}

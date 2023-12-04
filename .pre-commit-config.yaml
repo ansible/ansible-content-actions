@@ -6,11 +6,6 @@ repos:
       - id: prettier
         always_run: true
 
-  - repo: https://github.com/PyCQA/doc8
-    rev: "v1.1.1"
-    hooks:
-      - id: doc8
-
   - repo: https://github.com/codespell-project/codespell
     rev: v2.2.6
     hooks:

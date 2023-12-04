@@ -1,4 +1,4 @@
-name: "Ansible Sanity"
+name: "Integration"
 
 on:
   pull_request:
@@ -10,7 +10,7 @@ on:
 
 jobs:
   tox-matrix:
-    name: Matrix Sanity
+    name: Matrix Integration
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

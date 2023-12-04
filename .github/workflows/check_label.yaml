@@ -1,0 +1,65 @@
+# ack workflow runs on any change made to a pull-request and aims to verify
+# that is following our practices. Initial version is checking correct label
+# presence.
+name: "Check label"
+on:
+  issues:
+    types: [opened, reopened]
+  pull_request_target:
+    types: [opened, labeled, unlabeled, synchronize]
+  workflow_call: # allows reuse of this workflow from other devtools repos
+    secrets:
+      BOT_PAT:
+        required: false
+jobs:
+  ack:
+    runs-on: ubuntu-latest
+    environment: ack
+    permissions:
+      checks: write
+      contents: write # needed to update release
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Use of release drafter action for adding semantic labels based on
+      # either title, body or source branch name. We ignore potential failure
+      # of this step.
+      - uses: release-drafter/release-drafter@v5
+        if: ${{ github.event_name == 'pull_request' }}
+        with:
+          # we only want to use the auto-labeler bits:
+          disable-autolabeler: false
+          disable-releaser: true
+        # config from .github/release-drafter.yml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
+
+      # Ensure that one of the required labels is present and none of the undesired is absent
+      # See https://github.com/jesusvasquez333/verify-pr-label-action
+      - name: Verify PR label action
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: jesusvasquez333/verify-pr-label-action@v1.4.0
+        with:
+          github-token: "${{ secrets.GITHUB_TOKEN }}"
+          valid-labels: "bug, enhancement, feature, refactoring, major, deprecated, skip-changelog, bot:chronographer:skip"
+          invalid-labels: "help wanted, invalid, feedback-needed, incomplete"
+          pull-request-number: "${{ github.event.pull_request.number }}"
+          disable-reviews: true
+
+      - name: Update release notes if this is already merged
+        if: github.event.pull_request.merged == true
+        uses: release-drafter/release-drafter@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Add issue or pull-request to 'devtools' project
+        env:
+          BOT_PAT: ${{ secrets.BOT_PAT }}
+        if: env.BOT_PAT != null
+        uses: actions/add-to-project@main
+        with:
+          project-url: https://github.com/orgs/ansible/projects/86
+          github-token: ${{ secrets.BOT_PAT }}

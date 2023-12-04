@@ -1,5 +1,5 @@
 ---
-name: Galaxy Release
+name: "Ansible Galaxy release"
 on:
   workflow_call:
     inputs:

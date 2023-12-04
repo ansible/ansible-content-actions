@@ -1,5 +1,5 @@
 ---
-name: Release collection
+name: "Release collection"
 on:
   workflow_call:
     inputs:

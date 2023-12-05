@@ -1,10 +1,16 @@
 ---
-name: "Check label"
-on:
+name: Check label
+"on":
   issues:
-    types: [opened, reopened]
+    types:
+      - opened
+      - reopened
   pull_request_target:
-    types: [opened, labeled, unlabeled, synchronize]
+    types:
+      - opened
+      - labeled
+      - unlabeled
+      - synchronize
   workflow_call:
     secrets:
       BOT_PAT:
@@ -12,7 +18,7 @@ on:
 jobs:
   ack:
     runs-on: ubuntu-latest
-    environment: Check label
+    environment: push
     permissions:
       checks: write
       contents: write
@@ -20,42 +26,35 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      # Use of release drafter action for adding semantic labels based on
-      # either title, body or source branch name. We ignore potential failure
-      # of this step.
       - uses: release-drafter/release-drafter@v5
-        if: ${{ github.event_name == 'pull_request' }}
+        if: "${{ github.event_name == 'pull_request' }}"
         with:
-          # we only want to use the auto-labeler bits:
           disable-autolabeler: false
           disable-releaser: true
-        # config from .github/release-drafter.yml
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
         continue-on-error: true
-
       - name: Verify PR label action
-        if: ${{ github.event_name == 'pull_request' }}
+        if: "${{ github.event_name == 'pull_request' }}"
         uses: jesusvasquez333/verify-pr-label-action@v1.4.0
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
-          valid-labels: "bug, enhancement, feature, refactoring, major, deprecated, skip-changelog, bot:chronographer:skip"
+          valid-labels: >-
+            bug, enhancement, feature, refactoring, major, deprecated,
+            skip-changelog, bot:chronographer:skip
           invalid-labels: "help wanted, invalid, feedback-needed, incomplete"
           pull-request-number: "${{ github.event.pull_request.number }}"
           disable-reviews: true
-
       - name: Update release notes if this is already merged
         if: github.event.pull_request.merged == true
         uses: release-drafter/release-drafter@v5
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
       - name: Add issue or pull-request to 'devtools' project
         env:
-          BOT_PAT: ${{ secrets.BOT_PAT }}
+          BOT_PAT: "${{ secrets.BOT_PAT }}"
         if: env.BOT_PAT != null
         uses: actions/add-to-project@main
         with:
-          project-url: https://github.com/orgs/ansible/projects/86
-          github-token: ${{ secrets.BOT_PAT }}
+          project-url: "https://github.com/orgs/ansible/projects/86"
+          github-token: "${{ secrets.BOT_PAT }}"

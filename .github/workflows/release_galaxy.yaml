@@ -1,6 +1,6 @@
 ---
-name: "Ansible Galaxy release"
-on:
+name: Ansible Galaxy release
+"on":
   workflow_call:
     inputs:
       environment:
@@ -14,22 +14,23 @@ on:
     secrets:
       ansible_galaxy_api_key:
         required: false
-
 jobs:
   release:
     runs-on: ubuntu-latest
     name: Galaxy release
-    environment: ${{ inputs.environment }}
+    environment: "${{ inputs.environment }}"
     steps:
       - uses: actions/checkout@v4
-
-      - name: "Build the collection"
+      - name: Build the collection
         run: |
           ansible-galaxy collection build -v --force
+      - name: Publish the collection on Galaxy
+        if: "${{ inputs.galaxy_publish }}"
+        run: >
+          [[ "${{ secrets.ansible_galaxy_api_key != '' }}" ]] || { echo
+          "ansible_galaxy_api_key is required to publish on galaxy" ; exit 1; }
 
-      - name: "Publish the collection on Galaxy"
-        if: ${{ inputs.galaxy_publish }}
-        run: |
-          [[ "${{ secrets.ansible_galaxy_api_key != '' }}" ]] || { echo "ansible_galaxy_api_key is required to publish on galaxy" ; exit 1; }
           TARBALL=$(ls -1 ./*.tar.gz)
-          ansible-galaxy collection publish "${TARBALL}" --api-key "${{ secrets.ansible_galaxy_api_key }}"
+
+          ansible-galaxy collection publish "${TARBALL}" --api-key "${{
+          secrets.ansible_galaxy_api_key }}"

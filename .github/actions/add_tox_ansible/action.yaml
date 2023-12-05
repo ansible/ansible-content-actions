@@ -1,5 +1,5 @@
 ---
-name: add_tox_ansible
+name: "Add tox ansible"
 description: Ensure a valid tox-ansible.ini is present in the repo.
 inputs:
   path:
@@ -10,11 +10,7 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Check path
-      run: pwd
-      shell: bash
-      working-directory: "${{ inputs.path }}"
-    - name: add file
+    - name: Add file, if tox-ansible configuration file does not exist
       run: >-
         [ -e tox-ansible.ini ] || { echo "[ansible]" > tox-ansible.ini && echo
         -e "skip =\n\tpy3.7\n\tpy3.8\n\t2.9\n\t2.10\n\t2.11\n\t2.12\n\t2.13" >>

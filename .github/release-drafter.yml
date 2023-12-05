@@ -1,3 +1,4 @@
+---
 # Format and labels used by Ansible DevTools projects
 name-template: "v$RESOLVED_VERSION"
 tag-template: "v$RESOLVED_VERSION"

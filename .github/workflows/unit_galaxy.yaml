@@ -1,0 +1,76 @@
+---
+name: Ansible Unit
+"on":
+  pull_request:
+    branches:
+      - main
+      - releases/**
+      - stable/**
+  workflow_call:
+    inputs:
+      collection_pre_install:
+        required: false
+        type: string
+        default: ""
+jobs:
+  tox-matrix:
+    name: Matrix Unit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: "${{github.event.pull_request.head.ref}}"
+          repository: "${{ github.event.pull_request.head.repo.full_name }}"
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+      - name: "Check for tox-ansible.ini file, else add default"
+        uses: ansible/ansible-github-actions/.github/actions/add_tox_ansible@main
+      - name: "Install tox-ansible, includes tox"
+        run: "python -m pip install git+https://github.com/ansible/tox-ansible.git"
+      - name: Generate matrix
+        id: generate-matrix
+        run: >
+          python -m tox --ansible --gh-matrix --matrix-scope unit --conf
+          tox-ansible.ini
+    outputs:
+      envlist: "${{ steps.generate-matrix.outputs.envlist }}"
+  test:
+    needs: tox-matrix
+    strategy:
+      fail-fast: false
+      matrix:
+        entry: "${{ fromJson(needs.tox-matrix.outputs.envlist) }}"
+    name: "${{ matrix.entry.name }}"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: "${{ github.event.pull_request.head.sha }}"
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "${{ matrix.entry.python }}"
+      - name: "Install tox-ansible, includes tox"
+        run: python -m pip install tox-ansible
+      - name: "Check for tox-ansible.ini file, else add default"
+        uses: ansible/ansible-github-actions/.github/actions/add_tox_ansible@main
+      - name: Install build toolchain and openssl headers on Linux
+        shell: bash
+        run: sudo apt update && sudo apt install build-essential libssl-dev
+        if: ${{ matrix.entry.python == 3.12 }}
+      - name: Install catchsegv and libssh headers on Linux for cythonize+coverage
+        shell: bash
+        run: sudo apt update && sudo apt install libssh-dev
+        if: ${{ matrix.entry.python == 3.12 }}
+      # - name: Pre install collections dependencies first so the collection install does not
+      #   run: ansible-galaxy collection install --pre ${{ inputs.collection_pre_install }} -p /home/runner/collections
+      #   if: ${{ inputs.collection_pre_install }}
+      - name: Run tox unit tests
+        run: >-
+          python -m tox --ansible -e ${{ matrix.entry.name }} --conf
+          tox-ansible.ini
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"

@@ -52,6 +52,14 @@ jobs:
         uses: ansible/ansible-github-actions/.github/actions/add_tox_ansible@main
       - name: "Install tox-ansible, includes tox"
         run: python -m pip install tox-ansible
+      - name: Install build toolchain and openssl headers on Linux
+        shell: bash
+        run: sudo apt update && sudo apt install build-essential libssl-dev
+        if: ${{ matrix.entry.python == 3.12 }}
+      - name: Install catchsegv and libssh headers on Linux for cythonize+coverage
+        shell: bash
+        run: sudo apt update && sudo apt install libssh-dev
+        if: ${{ matrix.entry.python == 3.12 }}
       - name: Run tox test
         run: >-
           python -m tox --ansible -e ${{ matrix.entry.name }} --conf

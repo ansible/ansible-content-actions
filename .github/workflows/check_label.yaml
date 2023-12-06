@@ -16,7 +16,7 @@ name: Check label
       BOT_PAT:
         required: false
 jobs:
-  ack:
+  check_label:
     runs-on: ubuntu-latest
     environment: push
     permissions:

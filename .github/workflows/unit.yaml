@@ -65,9 +65,6 @@ jobs:
         shell: bash
         run: sudo apt update && sudo apt install libssh-dev
         if: ${{ matrix.entry.python == 3.12 }}
-      - name: Pre install collections dependencies first so the collection install does not
-        run: ansible-galaxy collection install --pre ${{ inputs.collection_pre_install }} -p /home/runner/collections
-        if: ${{ inputs.collection_pre_install }}
       - name: Run tox unit tests
         run: >-
           python -m tox --ansible -e ${{ matrix.entry.name }} --conf

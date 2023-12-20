@@ -1,13 +1,25 @@
 ---
 name: ansible-github-actions
 description: This is a monolithic action for Ansible contnet testing
-author: Sagar Paul
+author: Ansible Devtools Team
+branding:
+  icon: play
+  color: red
 inputs:
-  ansible_galaxy_api_key: # string
-    description: "The Galaxy api key"
-    required: false
-  gh_token: # string
-    description: "The GH token"
-    required: false
+  path:
+    description: |
+      Path to the collection to add tox-ansible.ini file.
+  base_ref:
+    description: The pull requests base.
+  repo:
+    description: Repository url
+  environment:
+    description: The deployment environment
+  ah_publish:
+    description: Publish the collection on automation hub
+  galaxy_publish:
+    description: Publish the collection on galaxy
+  collection_pre_install:
+    description: Publish the collection on galaxy
 runs:
   using: composite

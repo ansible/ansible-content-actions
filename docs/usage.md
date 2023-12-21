@@ -5,7 +5,7 @@
 This guide shows how to use various GitHub actions available.
 The following GitHub actions are to be added under `.github/workflows` directory as `{filename}.yaml`
 
-This GitHub Actions workflow automates various tasks related to Ansible development, including changelog generation, linting, integration, sanity checks, and unit tests. The `all_green` job ensures that all the previous tasks passed successfully before proceeding.
+This GitHub Actions workflow automates various tasks related to Ansible development, including changelog generation, linting, integration, sanity checks, and unit tests. The `all_green` job ensures that all the previous tasks passed successfully.
 
 Filename: `test.yaml`
 
@@ -52,7 +52,7 @@ jobs:
           '${{ needs.changelog.result }}',
           '${{ needs.integration.result }}',
           '${{ needs.sanity.result }}',
-          '${{ needs.unit-galaxy.result }}'
+          '${{ needs.unit-galaxy.result }}',
           '${{ needs.ansible-lint.result }}'
           ])"
 ```

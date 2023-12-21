@@ -6,22 +6,64 @@ name: Lint
       - main
       - stable
       - release/v*
-  workflow_call: null
+  workflow_call:
+    inputs:
+      args:
+        description: Arguments to be passed to ansible-lint command.
+        required: false
+        default: ""
+        type: string
+      setup_python:
+        description: If false, this action will not setup python and will instead rely on the already installed python.
+        required: false
+        default: true
+        type: boolean
+      working_directory:
+        description: The directory where to run ansible-lint from. Default is `github.workspace`.
+        required: false
+        default: ""
+        type: string
 jobs:
   build:
     name: Ansible Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: 3.x
-      - name: Install ansible-lint and dependencies
+      - name: Process inputs
+        id: inputs
         shell: bash
         run: |
-          python -m pip install --upgrade pip
-          pip install ansible ansible-lint
-      - name: Run Ansible-lint
+          if [[ -n "${{ inputs.working_directory }}" ]]; then
+            echo "working_directory=${{ inputs.working_directory }}" >> $GITHUB_OUTPUT
+          else
+            echo "working_directory=${{ github.workspace }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Generate .git/ansible-lint-requirements.txt
         shell: bash
-        run: ansible-lint
+        env:
+          GH_ACTION_REF: ${{ github.action_ref || 'main' }}
+        working-directory: ${{ steps.inputs.outputs.working_directory }}
+        run: |
+          wget --output-document=.git/ansible-lint-requirements.txt https://raw.githubusercontent.com/ansible/ansible-lint/$GH_ACTION_REF/.config/lock-requirements.txt
+
+      - name: Set up Python
+        if: inputs.setup_python == 'true'
+        uses: actions/setup-python@v5
+        with:
+          cache: pip
+          cache-dependency-path: ${{ steps.inputs.outputs.working_directory }}/.git/ansible-lint-requirements.txt
+          python-version: "3.11"
+
+      - name: Install ansible-lint
+        shell: bash
+        env:
+          GH_ACTION_REF: ${{ github.action_ref || 'main' }}
+        run: |
+          cd $GITHUB_ACTION_PATH
+          pip install "ansible-lint[lock] @ git+https://github.com/ansible/ansible-lint@$GH_ACTION_REF"
+          ansible-lint --version
+
+      - name: Run ansible-lint
+        shell: bash
+        working-directory: ${{ steps.inputs.outputs.working_directory }}
+        run: ansible-lint ${{ inputs.args }}

@@ -37,7 +37,7 @@ jobs:
           else
             echo "working_directory=${{ github.workspace }}" >> $GITHUB_OUTPUT
           fi
-          
+
       - name: Set up Python
         if: inputs.setup_python == 'true'
         uses: actions/setup-python@v5
@@ -46,10 +46,10 @@ jobs:
           cache-dependency-path: ${{ steps.inputs.outputs.working_directory }}/.git/ansible-lint-requirements.txt
           python-version: "3.11"
 
-      - name: Install ansible-lint
+      - name: Install ansible-lint from pip
         shell: bash
         run: |
-          pip install "ansible-lint[lock] @ git+https://github.com/ansible/ansible-lint"
+          pip install ansible-lint
           ansible-lint --version
 
       - name: Run ansible-lint

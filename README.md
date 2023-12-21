@@ -1,5 +1,4 @@
-[![🧪 GitHub Actions CI/CD workflow tests badge]][GHA workflow runs list]
-[![pre-commit.ci status badge]][pre-commit.ci results page]
+[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
 
 # ansible-github-action
 

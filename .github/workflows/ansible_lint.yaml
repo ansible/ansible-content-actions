@@ -28,6 +28,7 @@ jobs:
     name: Ansible Lint
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - name: Process inputs
         id: inputs
         shell: bash
@@ -37,7 +38,6 @@ jobs:
           else
             echo "working_directory=${{ github.workspace }}" >> $GITHUB_OUTPUT
           fi
-
       - name: Set up Python
         if: inputs.setup_python == 'true'
         uses: actions/setup-python@v5
@@ -45,13 +45,11 @@ jobs:
           cache: pip
           cache-dependency-path: ${{ steps.inputs.outputs.working_directory }}/.git/ansible-lint-requirements.txt
           python-version: "3.11"
-
       - name: Install ansible-lint from pip
         shell: bash
         run: |
           pip install ansible-lint
           ansible-lint --version
-
       - name: Run ansible-lint
         shell: bash
         working-directory: ${{ steps.inputs.outputs.working_directory }}

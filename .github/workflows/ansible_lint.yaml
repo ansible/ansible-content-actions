@@ -48,11 +48,8 @@ jobs:
 
       - name: Install ansible-lint
         shell: bash
-        env:
-          GH_ACTION_REF: ${{ github.action_ref || 'main' }}
         run: |
-          cd $GITHUB_ACTION_PATH
-          pip install "ansible-lint[lock] @ git+https://github.com/ansible/ansible-lint@$GH_ACTION_REF"
+          pip install "ansible-lint[lock] @ git+https://github.com/ansible/ansible-lint"
           ansible-lint --version
 
       - name: Run ansible-lint

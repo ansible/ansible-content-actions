@@ -1,6 +1,4 @@
-# Using
-
-## The release workflow
+# Using the release workflow
 
 This GitHub action releases the collection in Ansible Automation Hub and Ansible Galaxy, it is dependent on the environment `release` which must contain the following secrets.
 

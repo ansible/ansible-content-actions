@@ -15,4 +15,4 @@ jobs:
           fetch-depth: "0"
       - name: Validate changelog
         uses: >-
-          ansible/ansible-github-actions/.github/actions/ansible_validate_changelog@main
+          ansible/ansible-content-actions/.github/actions/ansible_validate_changelog@main

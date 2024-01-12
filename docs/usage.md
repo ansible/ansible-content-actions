@@ -26,16 +26,16 @@ on:
 
 jobs:
   changelog:
-    uses: ansible/ansible-github-actions/.github/workflows/changelog.yaml@main
+    uses: ansible/ansible-content-actions/.github/workflows/changelog.yaml@main
     if: github.event_name == 'pull_request'
   ansible-lint:
-    uses: ansible/ansible-github-actions/.github/workflows/ansible_lint.yaml@main
+    uses: ansible/ansible-content-actions/.github/workflows/ansible_lint.yaml@main
   sanity:
-    uses: ansible/ansible-github-actions/.github/workflows/sanity.yaml@main
+    uses: ansible/ansible-content-actions/.github/workflows/sanity.yaml@main
   unit-galaxy:
-    uses: ansible/ansible-github-actions/.github/workflows/unit.yaml@main
+    uses: ansible/ansible-content-actions/.github/workflows/unit.yaml@main
   integration:
-    uses: ansible/ansible-github-actions/.github/workflows/integration.yaml@main
+    uses: ansible/ansible-content-actions/.github/workflows/integration.yaml@main
   all_green:
     if: ${{ always() }}
     needs:
@@ -64,7 +64,7 @@ This GitHub action releases the collection in Ansible Automation Hub and Ansible
 `AH_TOKEN`: The Automation Hub token required for to interact with Ansible Automation Hub.
 `ANSIBLE_GALAXY_API_KEY`: A Galaxy token required to interact with Ansible Galaxy.
 
-Note - ansible-github-actions/release.yaml uses release_ah.yaml and release_galaxy.yaml internally.
+Note - ansible-content-actions/release.yaml uses release_ah.yaml and release_galaxy.yaml internally.
 
 Filename: `release.yaml`
 
@@ -77,7 +77,7 @@ on:
 
 jobs:
   release:
-    uses: ansible/ansible-github-actions/.github/workflows/release.yaml@main
+    uses: ansible/ansible-content-actions/.github/workflows/release.yaml@main
     with:
       environment: release
     secrets:
@@ -102,7 +102,7 @@ on:
     types: [opened, labeled, unlabeled, synchronize]
 jobs:
   check_label:
-    uses: ansible/ansible-github-actions/.github/workflows/check_label.yaml@main
+    uses: ansible/ansible-content-actions/.github/workflows/check_label.yaml@main
 ```
 
 ## The release drafter workflow (previously push)
@@ -127,7 +127,7 @@ env:
   ANSIBLE_COLLECTIONS_PATHS: ./
 jobs:
   update_release_draft:
-    uses: ansible/ansible-github-actions/.github/workflows/draft_release.yaml@main
+    uses: ansible/ansible-content-actions/.github/workflows/draft_release.yaml@main
     with:
       repo: ${{ github.event.pull_request.head.repo.full_name }}
     secrets:
@@ -152,7 +152,7 @@ on:
 
 jobs:
   refresh:
-    uses: ansible/ansible-github-actions/.github/workflows/refresh_ah_token.yaml@main
+    uses: ansible/ansible-content-actions/.github/workflows/refresh_ah_token.yaml@main
     with:
       environment: release
     secrets:

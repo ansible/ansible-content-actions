@@ -7,7 +7,7 @@ Combine GitHub Actions to create a streamlined workflow for testing Ansible coll
 ## Usage
 
 To use the action add the following step to your workflow file (e.g.
-`ansible/ansible-github-actions/.github/workflows/sanity.yaml@main`)
+`ansible/ansible-content-actions/.github/workflows/sanity.yaml@main`)
 
 Filename: `test.yaml`
 
@@ -28,16 +28,16 @@ on:
 
 jobs:
   changelog:
-    uses: ansible/ansible-github-actions/.github/workflows/changelog.yaml@main
+    uses: ansible/ansible-content-actions/.github/workflows/changelog.yaml@main
     if: github.event_name == 'pull_request'
   ansible-lint:
-    uses: ansible/ansible-github-actions/.github/workflows/ansible_lint.yaml@main
+    uses: ansible/ansible-content-actions/.github/workflows/ansible_lint.yaml@main
   sanity:
-    uses: ansible/ansible-github-actions/.github/workflows/sanity.yaml@main
+    uses: ansible/ansible-content-actions/.github/workflows/sanity.yaml@main
   unit-galaxy:
-    uses: ansible/ansible-github-actions/.github/workflows/unit.yaml@main
+    uses: ansible/ansible-content-actions/.github/workflows/unit.yaml@main
   integration:
-    uses: ansible/ansible-github-actions/.github/workflows/integration.yaml@main
+    uses: ansible/ansible-content-actions/.github/workflows/integration.yaml@main
   all_green:
     if: ${{ always() }}
     needs:
@@ -80,8 +80,8 @@ Please read [Contribution guidelines] if you wish to contribute.
 
 # Licensing
 
-The ansible-github-actions project is distributed as [MIT License].
+The ansible-content-actions project is distributed as [MIT License].
 
 # Authors
 
-ansible-github-actions is owned by [Ansible] by [Red Hat] project.
+ansible-content-actions is owned by [Ansible] by [Red Hat] project.

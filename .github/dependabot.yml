@@ -1,7 +1,7 @@
 ---
 version: 2
 updates:
-  - package-ecosystem: "ansible-github-actions"
+  - package-ecosystem: "ansible-content-actions"
     directory: "/"
     schedule:
       interval: daily

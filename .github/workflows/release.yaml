@@ -22,13 +22,13 @@ name: Release collection
         required: false
 jobs:
   release_automation_hub:
-    uses: ansible/ansible-github-actions/.github/workflows/release_ah.yaml@main
+    uses: ansible/ansible-content-actions/.github/workflows/release_ah.yaml@main
     with:
       environment: release
     secrets:
       ah_token: "${{ secrets.ah_token }}"
   release_galaxy:
-    uses: ansible/ansible-github-actions/.github/workflows/release_galaxy.yaml@main
+    uses: ansible/ansible-content-actions/.github/workflows/release_galaxy.yaml@main
     needs:
       - release_automation_hub
     with:

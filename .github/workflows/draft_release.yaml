@@ -1,5 +1,5 @@
 ---
-name: Draft Release
+name: Draft release
 "on":
   workflow_call:
     inputs:

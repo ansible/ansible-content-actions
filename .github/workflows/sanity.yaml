@@ -1,5 +1,5 @@
 ---
-name: Ansible Sanity
+name: Ansible sanity
 "on":
   pull_request:
     branches:

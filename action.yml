@@ -3,8 +3,8 @@ name: ansible-content-actions
 description: This is a monolithic action for Ansible content testing
 author: Ansible Devtools Team
 branding:
-  icon: play
-  color: red
+  icon: check-circle
+  color: gray-dark
 inputs:
   path:
     description: |
@@ -12,14 +12,14 @@ inputs:
   base_ref:
     description: The pull requests base.
   repo:
-    description: Repository url
+    description: Repository URL
   environment:
     description: The deployment environment
   ah_publish:
-    description: Publish the collection on automation hub
+    description: Publish the collection on the Automation hub
   galaxy_publish:
-    description: Publish the collection on galaxy
+    description: Publish the collection on Ansible Galaxy
   collection_pre_install:
-    description: Publish the collection on galaxy
+    description: Pre-install specified collections
 runs:
   using: composite

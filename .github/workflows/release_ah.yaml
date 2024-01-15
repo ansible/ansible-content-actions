@@ -1,5 +1,5 @@
 ---
-name: Automation Hub release
+name: Automation hub release
 "on":
   workflow_call:
     inputs:

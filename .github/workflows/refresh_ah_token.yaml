@@ -1,5 +1,5 @@
 ---
-name: Refresh Automation Hub token
+name: Refresh automation hub token
 "on":
   workflow_call:
     inputs:

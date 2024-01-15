@@ -63,7 +63,7 @@ jobs:
 
 This combined GitHub Action covers the following action workflows:
 
-- Ansible-lint - checks playbooks for practices and behavior that could potentially be improved.
+- Ansible-lint - Checks playbooks for practices and behavior that could potentially be improved.
 - Sanity - Uses tox-ansible generates a testing matrix and runs sanity checks.
 - Unit - Installs the collection and all its dependencies from Galaxy and runs unit tests against a matrix generated via tox-ansible.
 - Integration - Installs the collection and all its dependencies from Galaxy and runs integration tests against a matrix generated via tox-ansible.
@@ -74,14 +74,8 @@ This combined GitHub Action covers the following action workflows:
 - Draft Release - Generates changelog entries for release, also raises a PR with changelog and galaxy file updated.
 - Check Label - Check if a valid label added to the PR is required by the release drafter.
 
-# Contributing
+## Licensing
 
-Please read [Contribution guidelines] if you wish to contribute.
+ansible-content-actions is released under the Apache License version 2.
 
-# Licensing
-
-The ansible-content-actions project is distributed as [MIT License].
-
-# Authors
-
-ansible-content-actions is owned by [Ansible] by [Red Hat] project.
+See the [LICENSE](https://github.com/ansible/ansible-content-actions/blob/main/LICENSE) file for more details.

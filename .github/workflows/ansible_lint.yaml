@@ -1,5 +1,5 @@
 ---
-name: Lint
+name: Ansible lint
 "on":
   pull_request:
     branches:

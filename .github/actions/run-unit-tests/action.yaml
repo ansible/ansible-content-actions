@@ -3,9 +3,6 @@ name: run-unit-tests
 description: Run unit tests with tox-ansible.
 
 inputs:
-  matrix-python:
-    description: The python version for running unit test.
-    required: true
   matrix-name:
     description: |
       The python x ansible version for running the unit test.

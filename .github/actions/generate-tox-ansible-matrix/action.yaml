@@ -50,4 +50,5 @@ runs:
       id: generate-matrix
       shell: bash
       run: >
-        echo "envlist=$(python -m tox --ansible --gh-matrix --matrix-scope ${{ inputs.scope }} --conf tox-ansible.ini)" >> $GITHUB_OUTPUT
+        echo output=$(python -m tox --ansible --gh-matrix --matrix-scope ${{ inputs.scope }} --conf tox-ansible.ini)
+        echo "envlist=$output" >> $GITHUB_OUTPUT

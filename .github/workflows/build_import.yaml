@@ -9,6 +9,7 @@ name: Build and import collection
       - main
       - releases/**
       - stable/**
+  workflow_call: null
 
 jobs:
   build-import:

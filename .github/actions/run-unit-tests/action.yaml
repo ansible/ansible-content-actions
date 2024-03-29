@@ -23,9 +23,11 @@ runs:
         python-version: "${{ inputs.matrix-entry.python }}"
 
     - name: "Install tox-ansible, includes tox"
+      shell: bash
       run: python -m pip install tox-ansible
 
     - name: "Check for tox-ansible.ini file, else add default"
+      shell: bash
       uses: ansible/ansible-content-actions/.github/actions/add_tox_ansible@main
 
     # TO-DO: remove this when cp312 wheels are ready for ansible-pylibssh
@@ -35,8 +37,8 @@ runs:
       if: ${{ inputs.matrix-entry.python == 3.12 }}
 
     - name: Run tox unit tests
+      shell: bash
       run: >-
-        python -m tox --ansible -e ${{ inputs.matrix-entry.name }} --conf
-        tox-ansible.ini
+        python -m tox --ansible -e ${{ inputs.matrix-entry.name }} --conf tox-ansible.ini
       env:
         GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"

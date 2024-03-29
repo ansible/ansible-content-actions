@@ -7,6 +7,11 @@ inputs:
     description: Scope to generate matrix for.
     required: true
 
+outputs:
+  name:
+    description: "The generated tox env list."
+    value: ${{ steps.generate-matrix.outputs.envlist }}"
+
 runs:
   using: composite
   steps:
@@ -36,7 +41,4 @@ runs:
       id: generate-matrix
       shell: bash
       run: >
-        python -m tox --ansible --gh-matrix --matrix-scope ${{ inputs.scope }} --conf
-        tox-ansible.ini
-  outputs:
-    envlist: "${{ steps.generate-matrix.outputs.envlist }}"
+        echo "envlist=$(python -m tox --ansible --gh-matrix --matrix-scope ${{ inputs.scope }} --conf tox-ansible.ini)" >> $GITHUB_OUTPUT

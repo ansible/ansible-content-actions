@@ -1,0 +1,29 @@
+---
+name: Build and import collection
+
+"on":
+  release:
+    types: [published]
+  pull_request:
+    branches:
+      - main
+      - releases/**
+      - stable/**
+
+jobs:
+  build-import:
+    name: build-import-collection
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Ensure ansible-core and galaxy-importer is installed
+        shell: bash
+        run: |
+          python -m pip install ansible-core galaxy-importer
+
+      - name: Build the collection tarball and run galaxy importer on it
+        shell: bash
+        run: |
+          python -m galaxy_importer.main --git-clone-path . --output-path /tmp

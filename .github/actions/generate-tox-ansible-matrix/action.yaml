@@ -15,6 +15,13 @@ outputs:
 runs:
   using: composite
   steps:
+    - name: Fail early if no scope was provided for matrix generation
+      if: ${{ inputs.scope }} == ""
+      uses: actions/github-script@v3
+      with:
+        script: |
+          core.setFailed('A scope needs to be provided to generate matrix.')
+
     - name: Checkout repository
       uses: actions/checkout@v4
       with:

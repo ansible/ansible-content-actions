@@ -1,11 +1,6 @@
 ---
 name: Ansible lint
 "on":
-  pull_request:
-    branches:
-      - main
-      - stable
-      - release/v*
   workflow_call:
     inputs:
       args:

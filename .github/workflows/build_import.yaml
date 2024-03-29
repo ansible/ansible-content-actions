@@ -2,13 +2,6 @@
 name: Build and import collection
 
 "on":
-  release:
-    types: [published]
-  pull_request:
-    branches:
-      - main
-      - releases/**
-      - stable/**
   workflow_call: null
 
 jobs:

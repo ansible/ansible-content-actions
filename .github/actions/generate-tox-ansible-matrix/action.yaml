@@ -18,7 +18,7 @@ runs:
     # `required: true` seems to be no-op for actions?
     # https://github.com/actions/runner/issues/1070
     - name: Fail early if no scope was provided for matrix generation
-      if: ${{ inputs.scope }} == ""
+      if: ${{ inputs.scope == "" }}
       uses: actions/github-script@v3
       with:
         script: |

@@ -3,10 +3,14 @@ name: run-unit-tests
 description: Run unit tests with tox-ansible.
 
 inputs:
-  matrix-entry:
+  matrix-python:
+    description: The python version for running unit test.
+    required: true
+  matrix-name:
     description: |
-      A dictionary containing matrix information to run the unit tests against.
-      Example, "{"description": "Unit tests using ansible-core 2.14 and python 3.9", "factors": ["unit", "py3.9", "2.14"], "name": "unit-py3.9-2.14", "python": "3.9"}"
+      The python x ansible version for running the unit test.
+      This should be in the format unit-pyX.Y-ansible_version
+      Example, "unit-py3.9-2.14".
     required: true
 
 runs:
@@ -20,7 +24,7 @@ runs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: "${{ inputs.matrix-entry.python }}"
+        python-version: "${{ inputs.matrix-python }}"
 
     - name: "Install tox-ansible, includes tox"
       shell: bash
@@ -30,9 +34,9 @@ runs:
     - name: Install build toolchain and openssl headers on Linux
       shell: bash
       run: sudo apt update && sudo apt install build-essential libssl-dev libssh-dev
-      if: ${{ inputs.matrix-entry.python == 3.12 }}
+      if: ${{ inputs.matrix-python == 3.12 }}
 
     - name: Run tox unit tests
       shell: bash
       run: >-
-        python -m tox --ansible -e ${{ inputs.matrix-entry.name }}
+        python -m tox --ansible -e ${{ inputs.matrix-name }}

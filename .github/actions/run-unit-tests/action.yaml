@@ -34,7 +34,7 @@ runs:
     - name: Install build toolchain and openssl headers on Linux
       shell: bash
       run: sudo apt update && sudo apt install build-essential libssl-dev libssh-dev
-      if: contains(${{ inputs.matrix-name }}, 'py3.12')
+      if: contains(inputs.matrix-name, 'py3.12')
 
     - name: Run tox unit tests
       shell: bash

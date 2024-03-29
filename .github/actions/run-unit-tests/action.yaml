@@ -35,6 +35,4 @@ runs:
     - name: Run tox unit tests
       shell: bash
       run: >-
-        python -m tox --ansible -e ${{ inputs.matrix-entry.name }} --conf tox-ansible.ini
-      env:
-        GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+        python -m tox --ansible -e ${{ inputs.matrix-entry.name }}

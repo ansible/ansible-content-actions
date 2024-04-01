@@ -43,11 +43,11 @@ runs:
     - name: Install ansible-lint from pip
       shell: bash
       run: |
-        python3 -m pip install ansible-lint
-        python3 -m ansible-lint --version
+        pip install ansible-lint
+        ansible-lint --version
 
     - name: Run ansible-lint
       shell: bash
       working-directory: ${{ inputs.working_directory }}
       run: |
-        python3 -m ansible-lint ${{ inputs.args }}
+        ansible-lint ${{ inputs.args }}

@@ -1,0 +1,37 @@
+---
+name: run-sanity
+description: Run sanity tests with dependencies pulled from Ansible Galaxy via tox-ansible.
+
+inputs:
+  test-env:
+    description: |
+      The python x ansible version for running the sanity test.
+      This should be in the format sanity-pyX.Y-ansible_version
+      Example, "sanity-py3.9-2.14".
+    required: true
+
+runs:
+  using: composite
+  steps:
+    # `required: true` seems to be no-op for actions?
+    # https://github.com/actions/runner/issues/1070
+    - name: Fail early if no scope was provided for matrix generation
+      if: ${{ inputs.test-env == '' }}
+      uses: actions/github-script@v3
+      with:
+        script: |
+          core.setFailed('The input test-env (e.g., unit-py3.9-2.14) is required for this action to run.')
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "${{ inputs.matrix-python }}"
+
+    - name: "Install tox-ansible, includes tox"
+      shell: bash
+      run: python -m pip install tox-ansible
+
+    - name: Run tox sanity tests
+      shell: bash
+      run: >-
+        python -m tox --ansible -e ${{ inputs.matrix-name }}

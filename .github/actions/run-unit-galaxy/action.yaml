@@ -1,9 +1,9 @@
 ---
-name: run-unit-tests
-description: Run unit tests with tox-ansible.
+name: run-unit-galaxy
+description: Run unit tests with dependencies pulled from Ansible Galaxy via tox-ansible.
 
 inputs:
-  matrix-name:
+  test-env:
     description: |
       The python x ansible version for running the unit test.
       This should be in the format unit-pyX.Y-ansible_version
@@ -13,10 +13,14 @@ inputs:
 runs:
   using: composite
   steps:
-    - uses: actions/checkout@v4
+    # `required: true` seems to be no-op for actions?
+    # https://github.com/actions/runner/issues/1070
+    - name: Fail early if no scope was provided for matrix generation
+      if: ${{ inputs.test-env == '' }}
+      uses: actions/github-script@v3
       with:
-        ref: "${{ github.event.pull_request.head.sha }}"
-        fetch-depth: 0
+        script: |
+          core.setFailed('The input test-env (e.g., unit-py3.9-2.14) is required for this action to run.')
 
     - name: Set up Python
       uses: actions/setup-python@v4

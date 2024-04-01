@@ -24,12 +24,6 @@ runs:
         script: |
           core.setFailed('A scope needs to be provided to generate matrix.')
 
-    - name: Checkout repository
-      uses: actions/checkout@v4
-      with:
-        ref: "${{github.event.pull_request.head.ref}}"
-        repository: "${{ github.event.pull_request.head.repo.full_name }}"
-
     - name: Set up Python
       uses: actions/setup-python@v4
       with:

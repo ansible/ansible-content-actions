@@ -36,9 +36,9 @@ runs:
         tox-ansible.ini; }
       shell: bash
 
-    - name: "Install tox-ansible, includes tox"
+    - name: "Install tox-ansible from PyPI, includes tox"
       shell: bash
-      run: "python -m pip install git+https://github.com/ansible/tox-ansible.git"
+      run: python -m pip install tox-ansible
 
     - name: Generate matrix
       id: generate-matrix

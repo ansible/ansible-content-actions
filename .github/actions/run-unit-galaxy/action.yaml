@@ -22,10 +22,17 @@ runs:
         script: |
           core.setFailed('The input test-env (e.g., unit-py3.9-2.14) is required for this action to run.')
 
-    - name: Set up Python
+    - name: Get python-version from test-env
+      shell: bash
+      id: get-python-version
+      run: |
+        output=$(echo ${{ inputs.test-env }} | cut -d'-' -f2 | sed 's/py//')
+        echo "py_version=$output" >> $GITHUB_OUTPUT
+
+    - name: Set up Python ${{ steps.get-python-version.outputs.py_version}}
       uses: actions/setup-python@v4
       with:
-        python-version: "${{ inputs.matrix-python }}"
+        python-version: "${{ steps.get-python-version.outputs.py_version}}"
 
     - name: "Install tox-ansible, includes tox"
       shell: bash
@@ -35,9 +42,9 @@ runs:
     - name: Install build toolchain and openssl headers on Linux
       shell: bash
       run: sudo apt update && sudo apt install build-essential libssl-dev libssh-dev
-      if: contains(inputs.matrix-name, 'py3.12')
+      if: contains(inputs.test-env, 'py3.12')
 
     - name: Run tox unit tests
       shell: bash
       run: >-
-        python -m tox --ansible -e ${{ inputs.matrix-name }}
+        python -m tox --ansible -e ${{ inputs.test-env }}

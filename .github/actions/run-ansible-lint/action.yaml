@@ -1,0 +1,53 @@
+---
+name: run-ansible-lint
+description: Run the latest version of ansible-lint available at PyPI.
+
+inputs:
+  args:
+    description: Arguments to be passed to ansible-lint command.
+    required: false
+    default: ""
+    type: string
+  setup_python:
+    description: If false, this action will not setup python and will instead rely on the already installed python.
+    required: false
+    default: true
+    type: boolean
+  working_directory:
+    description: The directory where to run ansible-lint from. Default is `github.workspace`.
+    required: false
+    default: ""
+    type: string
+
+runs:
+  using: composite
+  steps:
+    - name: Show inputs
+      id: inputs
+      shell: bash
+      run: |
+        if [[ -n "${{ inputs.working_directory }}" ]]; then
+          echo "working_directory=${{ inputs.working_directory }}"
+        else
+          echo "working_directory=${{ github.workspace }}"
+        fi
+
+    - name: Set up Python
+      if: inputs.setup_python == 'true'
+      uses: actions/setup-python@v5
+      with:
+        cache: pip
+        cache-dependency-path: ${{ inputs.working_directory }}/.git/ansible-lint-requirements.txt
+        python-version: "3.11"
+
+    - name: Install ansible-lint from pip
+      shell: bash
+      run: |
+        python3 -m pip install ansible-lint
+        python3 -m ansible-lint --version
+
+    - name: Run ansible-lint
+      shell: bash
+      working-directory: ${{ inputs.working_directory }}
+      run: |
+        python3 -m ansible-lint ${{ inputs.args }}

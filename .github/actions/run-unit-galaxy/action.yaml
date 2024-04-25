@@ -1,0 +1,50 @@
+---
+name: run-unit-galaxy
+description: Run unit tests with dependencies pulled from Ansible Galaxy via tox-ansible.
+
+inputs:
+  test-env:
+    description: |
+      The python x ansible version for running the unit test.
+      This should be in the format unit-pyX.Y-ansible_version
+      Example, "unit-py3.9-2.14".
+    required: true
+
+runs:
+  using: composite
+  steps:
+    # `required: true` seems to be no-op for actions?
+    # https://github.com/actions/runner/issues/1070
+    - name: Fail early if no scope was provided for matrix generation
+      if: ${{ inputs.test-env == '' }}
+      uses: actions/github-script@v3
+      with:
+        script: |
+          core.setFailed('The input test-env (e.g., unit-py3.9-2.14) is required for this action to run.')
+
+    - name: Get python-version from test-env
+      shell: bash
+      id: get-python-version
+      run: |
+        output=$(echo ${{ inputs.test-env }} | cut -d'-' -f2 | sed 's/py//')
+        echo "py_version=$output" >> $GITHUB_OUTPUT
+
+    - name: Set up Python ${{ steps.get-python-version.outputs.py_version}}
+      uses: actions/setup-python@v4
+      with:
+        python-version: "${{ steps.get-python-version.outputs.py_version}}"
+
+    - name: "Install tox-ansible, includes tox"
+      shell: bash
+      run: python -m pip install tox-ansible
+
+    # TO-DO: remove this when cp312 wheels are ready for ansible-pylibssh
+    - name: Install build toolchain and openssl headers on Linux
+      shell: bash
+      run: sudo apt update && sudo apt install build-essential libssl-dev libssh-dev
+      if: contains(inputs.test-env, 'py3.12')
+
+    - name: Run tox unit tests
+      shell: bash
+      run: >-
+        python -m tox --ansible -e ${{ inputs.test-env }}

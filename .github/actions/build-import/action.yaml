@@ -1,0 +1,22 @@
+---
+name: build-import
+description: Build the collection tarball and run the latest galaxy-importer on it.
+
+runs:
+  using: composite
+  steps:
+    - name: Ensure ansible-core and galaxy-importer is installed
+      shell: bash
+      run: |
+        python -m pip install ansible-core galaxy-importer
+
+    - name: Update galaxy-importer cfg
+      shell: bash
+      run: |
+        echo "[galaxy-importer]\nCHECK_REQUIRED_TAGS=True" > /tmp/galaxy-importer.cfg
+        export GALAXY_IMPORTER_CONFIG=/tmp/galaxy-importer.cfg
+
+    - name: Build the collection tarball and run galaxy importer on it
+      shell: bash
+      run: |
+        python -m galaxy_importer.main --git-clone-path . --output-path /tmp

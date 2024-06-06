@@ -125,7 +125,6 @@ def is_valid_changelog_format(path: str) -> bool:
             changelog_config = yaml.safe_load(config_file)
             changes_type = tuple(item[0] for item in changelog_config["sections"])
             changes_type += (changelog_config["trivial_section_name"],)
-            changes_type += (changelog_config["prelude_section_name"],)
             changes_type += (changelog_config["new_plugins_after_name"],)
             logger.info("Found the following changelog sections: %s", changes_type)
     except (OSError, yaml.YAMLError) as exc:

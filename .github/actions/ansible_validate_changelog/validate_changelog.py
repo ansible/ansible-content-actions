@@ -125,6 +125,7 @@ def is_valid_changelog_format(path: str) -> bool:
             changelog_config = yaml.safe_load(config_file)
             changes_type = tuple(item[0] for item in changelog_config["sections"])
             changes_type += (changelog_config["trivial_section_name"],)
+            changes_type += (changelog_config["prelude_section_name"],)
             logger.info("Found the following changelog sections: %s", changes_type)
     except (OSError, yaml.YAMLError) as exc:
         logger.info(
@@ -154,7 +155,10 @@ def is_valid_changelog_format(path: str) -> bool:
                     msg = f"{key} from {path} is not a valid changelog type"
                     logger.error(msg)
                     return False
-                if not isinstance(section[key], list):
+                if key == "release_summary" and not isinstance(section[key], str):
+                    logger.error("release_summary should not be a list")
+                    return False
+                elif key != "release_summary" and not isinstance(section[key], list):
                     logger.error(
                         "Changelog section %s from file %s must be a list, '%s' found instead.",
                         key,

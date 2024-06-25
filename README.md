@@ -1,19 +1,15 @@
-[![pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)](https://github.com/pre-commit/pre-commit)
-
 # ansible-content-actions
 
 Combine GitHub Actions to create a streamlined workflow for testing Ansible collection repositories on GitHub.
 
 ## Usage
 
-To use the action add the following step to your workflow file (e.g.
-`ansible/ansible-content-actions/.github/workflows/sanity.yaml@main`)
+To use the action, create a workflow in your repository like
+`.github/workflows/test.yaml`:
 
-Filename: `test.yaml`
-
-```
+```yaml
 ---
-name: "CI"
+name: ci
 
 concurrency:
   group: ${{ github.head_ref || github.run_id }}
@@ -24,7 +20,7 @@ on:
     branches: [main]
   workflow_dispatch:
   schedule:
-    - cron: '0 0 * * *'
+    - cron: "0 0 * * *"
 
 jobs:
   changelog:

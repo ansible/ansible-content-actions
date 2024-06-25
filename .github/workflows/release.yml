@@ -25,6 +25,12 @@ jobs:
           echo "version=${version}" >> $GITHUB_OUTPUT
           echo "major=${major}" >> $GITHUB_OUTPUT
 
+      - name: Check out src from Git
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: true
+
       - name: Force update major tag
         run: |
           git tag v${{ steps.version.outputs.major }} ${{ steps.version.outputs.tag }} -f

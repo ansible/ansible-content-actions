@@ -16,7 +16,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - uses: release-drafter/release-drafter@v5
+      - uses: release-drafter/release-drafter@v6
         if: "${{ github.event_name == 'pull_request' }}"
         with:
           disable-autolabeler: false
@@ -37,7 +37,7 @@ jobs:
           disable-reviews: true
       - name: Update release notes if this is already merged
         if: github.event.pull_request.merged == true
-        uses: release-drafter/release-drafter@v5
+        uses: release-drafter/release-drafter@v6
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
       - name: Add issue or pull-request to 'devtools' project

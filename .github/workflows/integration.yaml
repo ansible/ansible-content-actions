@@ -1,7 +1,12 @@
 ---
 name: Integration
 "on":
-  workflow_call: null
+  workflow_call:
+    inputs:
+      collection_pre_install:
+        required: false
+        type: string
+        default: ""
 jobs:
   tox-matrix:
     name: Matrix Integration

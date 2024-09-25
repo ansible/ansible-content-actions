@@ -103,7 +103,7 @@ jobs:
         run: "cml clear"
         continue-on-error: true
         env:
-          CML_VERIFY_CERT: False
+          CML_VERIFY_CERT: false
           VIRL_HOST: ${{ secrets.virl_host }}
           VIRL_PASSWORD: ${{ secrets.virl_password }}
           VIRL_USERNAME: admin
@@ -148,7 +148,7 @@ jobs:
         run: echo ${{ env.CML_LABS }} | tr -d '\n' | xargs -d ',' -i sh -c  'cml use --id {} && cml rm --force --no-confirm'
         continue-on-error: true
         env:
-          CML_VERIFY_CERT: False
+          CML_VERIFY_CERT: false
           VIRL_HOST: ${{ secrets.virl_host }}
           VIRL_PASSWORD: ${{ secrets.virl_password }}
           VIRL_USERNAME: admin

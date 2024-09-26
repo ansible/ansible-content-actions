@@ -36,7 +36,7 @@ Example showing how only Automation hub release can be made, only `ah_token` wou
 
 ### Release on AH only, workflow
 
-Filename: `release.yaml`
+Filename: `release_ah.yaml`
 
 ```
 ---
@@ -58,7 +58,7 @@ Same for galaxy releases only, please refer to the `release_galay.yaml` and spec
 
 ### Release on Galaxy only, workflow
 
-Filename: `release.yaml`
+Filename: `release_galaxy.yaml`
 
 ```
 ---
@@ -73,10 +73,8 @@ jobs:
     with:
       environment: release
     secrets:
-      ah_token: ${{ secrets.ANSIBLE_GALAXY_API_KEY }}
+      ansible_galaxy_api_key: ${{ secrets.ANSIBLE_GALAXY_API_KEY }}
 ```
-
-Same for galaxy releases only, please refer to the `release_galay.yaml` and specify `ansible_galaxy_api_key` secret.
 
 ## Detailed release process
 

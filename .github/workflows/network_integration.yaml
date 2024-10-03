@@ -99,6 +99,9 @@ jobs:
       - name: Install the integration test dependency
         run: python3 -m pip install git+https://github.com/ansible-network/pytest-ansible-network-integration.git
 
+      - name: Install the rest of the dependencies
+        run: python3 -m pip install cmlutils pytest-xdist
+
       - name: Clear current lab id if any
         run: "cml clear"
         continue-on-error: true

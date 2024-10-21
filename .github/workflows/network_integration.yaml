@@ -25,6 +25,14 @@ on:
         default: ""
         required: false
         type: string
+      dry_run:
+        required: false
+        type: boolean
+        default: false
+      dry_run_repo:
+        required: false
+        type: string
+        default: ""
 
     secrets:
       cml_ssh_password:
@@ -62,6 +70,15 @@ jobs:
           path: ${{ env.source_directory }}
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: "0"
+        if: ${{ !inputs.dry_run }}
+
+      - name: Checkout the collection repository
+        uses: ansible-network/github_actions/.github/actions/checkout_dependency@main
+        with:
+          repository: ${{ inputs.dry_run_repo }}
+          path: ${{ env.source_directory }}
+          fetch-depth: "0"
+        if: ${{ inputs.dry_run }}
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
@@ -103,6 +120,7 @@ jobs:
         run: python3 -m pip install cmlutils pytest-xdist virl2_client==2.7.1
 
       - name: Clear current lab id if any
+        if: ${{ !inputs.dry_run }}
         run: "cml clear"
         continue-on-error: true
         env:
@@ -130,6 +148,7 @@ jobs:
         working-directory: ${{ steps.identify.outputs.collection_path }}
 
       - name: Run integration tests
+        if: ${{ !inputs.dry_run }}
         run: >-
           python3 -m pytest tests/integration
           --integration-tests-path ${{ inputs.integration_test_path }}
@@ -147,7 +166,7 @@ jobs:
         working-directory: ${{ steps.identify.outputs.collection_path }}
 
       - name: Attempt to remove any labs in case the workflow was cancelled
-        if: cancelled()
+        if: cancelled() || ${{ !inputs.dry_run }}
         run: echo ${{ env.CML_LABS }} | tr -d '\n' | xargs -d ',' -i sh -c  'cml use --id {} && cml rm --force --no-confirm'
         continue-on-error: true
         env:

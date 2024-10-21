@@ -5,6 +5,7 @@ on:
     branches: [main]
   push:
     branches: [main]
+  workflow_dispatch: null
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
@@ -20,6 +21,22 @@ jobs:
           python-version: "3.x"
       - uses: pre-commit/action@v3.0.1
 
+  self-test-network-integration:
+    uses: ./.github/workflows/network_integration.yaml
+    with:
+      lab_title: cisco_nxos
+      network_os: cisco.nxos.nxos
+      pytest_addopts: "--color=yes -n 2"
+      collection_pre_install: >-
+        git+https://github.com/ansible-collections/ansible.utils.git
+        git+https://github.com/ansible-collections/ansible.netcommon.git
+      dry_run: true
+      dry_run_repo: ansible-collections/cisco.nxos
+    secrets:
+      cml_ssh_password: "selftest-user" # These are placeholder values
+      virl_password: "selftest-pass"
+      virl_host: "examplehost"
+
   check:
     if: always()
     permissions:
@@ -28,6 +45,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - lint
+      - self-test-network-integration
     steps:
       - name: Decide whether the needed jobs succeeded or failed
         uses: re-actors/alls-green@release/v1

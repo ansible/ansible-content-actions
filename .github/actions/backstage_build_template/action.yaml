@@ -2,7 +2,7 @@
 name: Pack
 description: Pack plugin and upload artifact
 runs:
-  using: 'composite'
+  using: "composite"
   steps:
     - name: checkout repo content
       uses: actions/checkout@v3 # checkout the repository content
@@ -10,7 +10,7 @@ runs:
     - name: setup python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.x'
+        python-version: "3.x"
 
     - name: install python packages
       shell: bash
@@ -40,7 +40,7 @@ runs:
     - name: Create Pull Request
       uses: peter-evans/create-pull-request@v5
       with:
-        commit-message: 'Auto generated backstage templates'
-        branch: 'automated-backstage-templates-branch'
-        title: 'Automated backstage tempalates for Automation experience surveys'
-        body: 'This PR contains backstage tempalates based on Automation experience surveys.'
+        commit-message: "Auto generated backstage templates"
+        branch: "automated-backstage-templates-branch"
+        title: "Automated backstage tempalates for Automation experience surveys"
+        body: "This PR contains backstage tempalates based on Automation experience surveys."

@@ -1,0 +1,28 @@
+---
+name: Survey to Template
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      NODE_OPTIONS: --max-old-space-size=8192
+    permissions:
+      contents: write
+      pull-requests: write
+      repository-projects: write
+
+    name: Survey > Template
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Surevey > Template 📦 & PR 🚀
+        uses: ./.github/actions/backstage_build_template

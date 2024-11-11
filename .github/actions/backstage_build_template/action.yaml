@@ -1,0 +1,46 @@
+---
+name: Pack
+description: Pack plugin and upload artifact
+runs:
+  using: 'composite'
+  steps:
+    - name: checkout repo content
+      uses: actions/checkout@v3 # checkout the repository content
+
+    - name: setup python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+
+    - name: install python packages
+      shell: bash
+      working-directory: ${{ github.workspace }}
+      run: |
+        python -m pip install --upgrade pip
+        pip install pyaml
+
+    - name: Run the pack script
+      shell: bash
+      working-directory: ${{ github.workspace }}
+      run: python ${{ github.action_path }}/backstage_build_template.py
+
+    - name: Check for File Changes
+      shell: bash
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+        if [[ -n $(git status --porcelain) ]]; then
+          git add .
+          git commit -m "Automated changes by GitHub Action"
+        else
+          echo "No changes detected."
+          exit 0
+        fi
+
+    - name: Create Pull Request
+      uses: peter-evans/create-pull-request@v5
+      with:
+        commit-message: 'Auto generated backstage templates'
+        branch: 'automated-backstage-templates-branch'
+        title: 'Automated backstage tempalates for Automation experience surveys'
+        body: 'This PR contains backstage tempalates based on Automation experience surveys.'

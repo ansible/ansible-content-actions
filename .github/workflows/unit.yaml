@@ -55,11 +55,11 @@ jobs:
       - name: Install build toolchain and openssl headers on Linux
         shell: bash
         run: sudo apt update && sudo apt install build-essential libssl-dev
-        if: ${{ matrix.entry.python == 3.12 }}
+        if: ${{ matrix.entry.python >= 3.12 }}
       - name: Install catchsegv and libssh headers on Linux for cythonize+coverage
         shell: bash
         run: sudo apt update && sudo apt install libssh-dev
-        if: ${{ matrix.entry.python == 3.12 }}
+        if: ${{ matrix.entry.python >= 3.12 }}
       - name: Run tox unit tests
         run: >-
           python -m tox --ansible -e ${{ matrix.entry.name }} --conf

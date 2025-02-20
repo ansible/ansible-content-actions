@@ -3,15 +3,7 @@
 name: EE Build
 
 on:
-  pull_request_target:
-    branches:
-      - main
-    types: [opened, reopened, synchronize]
-  push:
-    branches:
-      - main
-  release:
-    types: [published]
+  workflow_call: null
 
 jobs:
   prepare:

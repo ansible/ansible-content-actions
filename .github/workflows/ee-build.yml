@@ -1,9 +1,23 @@
 # Combine workflow for pull-request, push-to-main and release events.
 
-name: EE Build
+name: Build and release execution environment
 
 on:
-  workflow_call: null
+  workflow_call:
+    inputs:
+      registry:
+        description: The registry to which the image will be pushed.
+        required: true
+        type: string
+    secrets:
+      registry_username:
+        required: true
+      registry_password:
+        required: true
+      registry_redhat_username:
+        required: false
+      registry_redhat_password:
+        required: false
 
 jobs:
   prepare:

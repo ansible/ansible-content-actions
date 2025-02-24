@@ -1,0 +1,221 @@
+# Combine workflow for pull-request, push-to-main and release events.
+
+name: Build and release execution environment
+
+on:
+  workflow_call:
+    inputs:
+      registry:
+        description: The registry to which the image will be pushed.
+        required: true
+        type: string
+    secrets:
+      registry_username:
+        required: true
+      registry_password:
+        required: true
+      registry_redhat_username:
+        required: false
+      registry_redhat_password:
+        required: false
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+  debug:
+    if: github.event_name == 'pull_request_target'
+    needs: prepare
+    runs-on: ubuntu-latest
+    environment: test
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+        with:
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.ref != '' && github.event.pull_request.head.ref || 'main' }}
+
+      - name: Print working directory
+        run: pwd
+
+      - name: List files in the directory
+        run: ls -lahR
+
+      - name: List environment variables
+        run: printenv | sort
+
+      - name: Show git branch and commit
+        run: |
+          echo "Current Branch:"
+          git branch
+          echo "Current Commit:"
+          git rev-parse HEAD
+
+      - name: Fetch all branches
+        run: git fetch --all
+
+      - name: List all remote branches
+        run: git branch -r
+
+      - name: Show detailed git diff
+        run: git diff origin/main
+
+  build-ee:
+    needs: prepare
+    outputs:
+      push_success: ${{ steps.push_to_ghcr.outputs.push_success }}
+    runs-on: ubuntu-latest
+    environment: ${{ github.event_name }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Fetch the base and head refs only if a push and release
+        if: github.event_name == 'push' || github.event_name == 'release'
+        run: |
+          git fetch origin ${{ github.base_ref }}
+          git fetch origin ${{ github.head_ref }}
+
+      - name: Install python requirements (ansible-builder)
+        run: pip install ansible-builder
+
+      - name: Define common environment variables
+        run: |
+          echo "EE=`yq -r '.options.tags[0]' 'execution-environment.yml'`" >> $GITHUB_ENV
+          echo "EE_file=execution-environment.yml" >> $GITHUB_ENV
+          echo "IMAGE_REGISTRY=ghcr.io" >> $GITHUB_ENV
+
+      - name: Define environment variables for PR
+        if: github.event_name == 'pull_request_target'
+        run: |
+          SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
+          echo "IMAGE_TAG=pr-${{ github.event.number }}-$SHORT_SHA" >> $GITHUB_ENV
+
+      - name: Define environment variables for push and release
+        if: github.event_name == 'push' || github.event_name == 'release'
+        run: |
+          echo "IMAGE_TAG=latest" >> $GITHUB_ENV
+
+      - name: Print the environment variables
+        run: |
+          echo $GITHUB_ENV
+
+      - name: Login to ghcr
+        uses: redhat-actions/podman-login@v1
+        with:
+          registry: ${{ env.IMAGE_REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: (devel) Build image and create artifact
+        run: |
+          echo "Would build: ${{ env.EE }}"
+
+      - name: Build image and create artifact
+        run: |
+          ansible-builder build -v 3 \
+          --build-arg AH_TOKEN=${{ secrets.AH_TOKEN }} \
+          --context=../${{ env.EE }} \
+          --tag=${{ env.EE }}:${{ env.IMAGE_TAG }} \
+          --tag=${{ env.EE }}:${{ github.sha }}
+
+          # Create artifact file
+          COMMANDS_FILE="commands-${{ env.EE }}.txt"
+          echo "" >> $COMMANDS_FILE
+          echo "EE: ${{ env.EE }}" >> $COMMANDS_FILE
+          echo "" >> $COMMANDS_FILE
+          echo "\`\`\`" > $COMMANDS_FILE
+          echo "podman pull ${{ env.IMAGE_REGISTRY }}/${{ github.repository_owner }}/${{ env.EE }}:${{ env.IMAGE_TAG }}" >> $COMMANDS_FILE
+          echo "\`\`\`" >> $COMMANDS_FILE
+          echo "<details>" >> $COMMANDS_FILE
+          echo "<summary><b>More info...</b></summary>" >> $COMMANDS_FILE
+          echo "" >> $COMMANDS_FILE
+          echo "#### Installed collections" >> $COMMANDS_FILE
+          echo "" >> $COMMANDS_FILE
+          echo "\`\`\`" >> $COMMANDS_FILE
+          podman run -it ${{ env.EE }}:${{ env.IMAGE_TAG }} ansible-galaxy collection list  >> $COMMANDS_FILE
+          echo "\`\`\`" >> $COMMANDS_FILE
+          echo "" >> $COMMANDS_FILE
+          echo "#### EE Testing" >> $COMMANDS_FILE
+          echo "" >> $COMMANDS_FILE
+          echo "\`\`\`" >> $COMMANDS_FILE
+          podman run -it ${{ env.EE }}:${{ env.IMAGE_TAG }} ansible-navigator --version  >> $COMMANDS_FILE
+          echo "\`\`\`" >> $COMMANDS_FILE
+          echo "" >> $COMMANDS_FILE
+          echo "#### Ansible version" >> $COMMANDS_FILE
+          echo "" >> $COMMANDS_FILE
+          echo "\`\`\`" >> $COMMANDS_FILE
+          podman run -it ${{ env.EE }}:${{ env.IMAGE_TAG }} ansible --version  >> $COMMANDS_FILE
+          echo "\`\`\`" >> $COMMANDS_FILE
+          echo "</details>" >> $COMMANDS_FILE
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: commands-${{ env.EE }}
+          path: ./commands-${{ env.EE }}.txt
+
+      - name: Push To GHCR
+        id: push_to_ghcr
+        uses: redhat-actions/push-to-registry@v2
+        with:
+          image: ${{ env.EE }}
+          tags: ${{ env.IMAGE_TAG }}
+          registry: ${{ env.IMAGE_REGISTRY }}/${{ github.repository_owner }}
+
+      - name: Set push success flag
+        if: success()
+        run: echo "push_success=true" >> $GITHUB_ENV
+
+      - name: Print summary
+        run: |
+          echo "## Usage" >> $GITHUB_STEP_SUMMARY
+          echo "Image pushed to repository: ${{ env.IMAGE_REGISTRY }}/${{ github.repository_owner }}/${{ env.EE }}:${{ env.IMAGE_TAG }}" >> $GITHUB_STEP_SUMMARY
+          echo "> \`podman pull ${{ env.IMAGE_REGISTRY }}/${{ github.repository_owner }}/${{ env.EE }}:${{ env.IMAGE_TAG }}\`" >> $GITHUB_STEP_SUMMARY
+
+  post-comment:
+    if: github.event_name == 'pull_request_target'
+    needs: build-ee
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Post Comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            let commentBody = '### **EE Images Built** \n\n';
+
+            const artifactsDirectory = './';  // Base directory where artifacts are downloaded
+            fs.readdirSync(artifactsDirectory, { withFileTypes: true }).forEach(dirent => {
+              if (dirent.isDirectory() && dirent.name.startsWith('commands-')) {
+                const artifactDirPath = path.join(artifactsDirectory, dirent.name);
+                fs.readdirSync(artifactDirPath).forEach(file => {
+                  const filePath = path.join(artifactDirPath, file);
+                  const content = fs.readFileSync(filePath, 'utf8');
+                  commentBody += content + '\n';
+                });
+              }
+            });
+
+            const prNumber = context.issue.number;
+            const repo = context.repo;
+            github.rest.issues.createComment({
+              ...repo,
+              issue_number: prNumber,
+              body: commentBody.trim()
+            });

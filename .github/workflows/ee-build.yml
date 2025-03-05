@@ -20,17 +20,8 @@ on:
         required: false
 
 jobs:
-  prepare:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
   debug:
     if: github.event_name == 'pull_request_target'
-    needs: prepare
     runs-on: ubuntu-latest
     environment: test
     steps:
@@ -67,7 +58,6 @@ jobs:
         run: git diff origin/main
 
   build-ee:
-    needs: prepare
     outputs:
       push_success: ${{ steps.push_to_ghcr.outputs.push_success }}
     runs-on: ubuntu-latest
@@ -133,7 +123,7 @@ jobs:
           echo "EE: ${{ env.EE }}" >> $COMMANDS_FILE
           echo "" >> $COMMANDS_FILE
           echo "\`\`\`" > $COMMANDS_FILE
-          echo "podman pull ${{ env.IMAGE_REGISTRY }}/${{ github.repository_owner }}/${{ env.EE }}:${{ env.IMAGE_TAG }}" >> $COMMANDS_FILE
+          echo "podman pull ${{ env.EE }}:${{ env.IMAGE_TAG }}" >> $COMMANDS_FILE
           echo "\`\`\`" >> $COMMANDS_FILE
           echo "<details>" >> $COMMANDS_FILE
           echo "<summary><b>More info...</b></summary>" >> $COMMANDS_FILE
@@ -148,12 +138,12 @@ jobs:
           echo "" >> $COMMANDS_FILE
           echo "\`\`\`" >> $COMMANDS_FILE
           echo "Installed collections" >> $COMMANDS_FILE
-          ansible-navigator collections --eei ${{ env.IMAGE_REGISTRY }}/${{ github.repository_owner }}/${{ env.EE }}:${{ env.IMAGE_TAG }} --mode stdout | grep "known_as" >> $COMMANDS_FILE
+          ansible-navigator collections --eei ${{ env.EE }}:${{ env.IMAGE_TAG }} --mode stdout --pp never | grep "known_as" >> $COMMANDS_FILE
           echo "\`\`\`" >> $COMMANDS_FILE
           echo "" >> $COMMANDS_FILE
           echo "\`\`\`" >> $COMMANDS_FILE
           echo "Installed images" >> $COMMANDS_FILE
-          ansible-navigator images --eei ${{ env.IMAGE_REGISTRY }}/${{ github.repository_owner }}/${{ env.EE }}:${{ env.IMAGE_TAG }} --mode stdout | grep "name_tag" >> $COMMANDS_FILE
+          ansible-navigator images --eei ${{ env.EE }}:${{ env.IMAGE_TAG }} --mode stdout --pp never | grep "name_tag" >> $COMMANDS_FILE
           echo "\`\`\`" >> $COMMANDS_FILE
           echo "" >> $COMMANDS_FILE
           echo "#### Ansible version" >> $COMMANDS_FILE

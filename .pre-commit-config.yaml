@@ -6,7 +6,7 @@ repos:
   #     - id: actionlint
 
   - repo: https://github.com/pycontribs/mirrors-prettier
-    rev: v3.5.0
+    rev: v3.5.3
     hooks:
       - id: prettier
         always_run: true
@@ -29,7 +29,7 @@ repos:
         language_version: python3
 
   - repo: https://github.com/adrienverge/yamllint.git
-    rev: v1.35.1
+    rev: v1.37.1
     hooks:
       - id: yamllint
         files: \.(yaml|yml)$

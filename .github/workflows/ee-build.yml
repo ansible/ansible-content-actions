@@ -154,7 +154,7 @@ jobs:
           echo "</details>" >> $COMMANDS_FILE
 
       - name: Upload build artifact
-        uses: actions/upload-artifact@v4
+        uses: coactions/upload-artifact@v4
         with:
           name: commands-${{ env.EE }}
           path: ./commands-${{ env.EE }}.txt

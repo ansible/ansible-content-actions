@@ -177,8 +177,8 @@ jobs:
           VIRL_USERNAME: admin
 
       - name: Upload logs
-        if: always()
-        uses: actions/upload-artifact@v4
+        if: ${{ !inputs.dry_run }}
+        uses: coactions/upload-artifact@v4
         with:
           name: logs
           path: /home/runner/test_logs/

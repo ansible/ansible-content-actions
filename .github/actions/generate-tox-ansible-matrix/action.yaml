@@ -4,8 +4,9 @@ description: Generate a tox ansible matrix for the given scope.
 
 inputs:
   scope:
-    description: Scope to generate matrix for.
-    required: true
+    description: "Scope to generate matrix for. Allowed values: all, sanity, unit, integration"
+    required: false
+    default: all
 
 outputs:
   envlist:
@@ -15,6 +16,10 @@ outputs:
 runs:
   using: composite
   steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: true
+
     # `required: true` seems to be no-op for actions?
     # https://github.com/actions/runner/issues/1070
     - name: Fail early if no scope was provided for matrix generation
@@ -24,10 +29,10 @@ runs:
         script: |
           core.setFailed('A scope needs to be provided to generate matrix.')
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
+    - name: Install the latest version of uv
+      uses: astral-sh/setup-uv@v5
       with:
-        python-version: "3.11"
+        version: "latest"
 
     - name: "Check for tox-ansible.ini file, else add default"
       run: >-
@@ -36,13 +41,10 @@ runs:
         tox-ansible.ini; }
       shell: bash
 
-    - name: "Install tox-ansible from PyPI, includes tox"
-      shell: bash
-      run: python -m pip install tox-ansible
-
     - name: Generate matrix
       id: generate-matrix
       shell: bash
       run: >
-        echo output=$(python -m tox --ansible --gh-matrix --matrix-scope ${{ inputs.scope }} --conf tox-ansible.ini)
+        echo output=$(uv run tox --ansible --gh-matrix --matrix-scope ${{ inputs.scope }} --conf tox-ansible.ini)
+        echo $output
         echo "envlist=$output" >> $GITHUB_OUTPUT

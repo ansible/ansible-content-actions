@@ -1,0 +1,31 @@
+[tool.tox]
+envlist = ["lint", "ansible"]
+requires = ["tox-uv >= 1.16.0"]
+
+[tool.tox.env_run_base]
+skip_install = true
+
+[tool.tox.env.lint]
+commands = [
+  [
+    "python3",
+    "-m",
+    "pre_commit",
+    "run",
+    "{posargs:--all}"
+  ]
+]
+deps = ["pre-commit", "pre-commit-uv"]
+description = "Run linting"
+set_env = {PYTHONWARNINGS = ""}
+
+[tool.tox.env.ansible]
+description = "Run tox-ansible"
+deps = [
+  "tox-ansible>=25.5.2"
+]
+commands = [
+  ["bash", "-c", "set"],
+  ["tox", "--ansible", "-c", "tox-ansible.ini", "--listenvs-all", "-v"]
+]
+allowlist_externals = ["bash"]

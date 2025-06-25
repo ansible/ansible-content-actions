@@ -20,8 +20,17 @@ jobs:
         with:
           python-version: "3.x"
       - uses: pre-commit/action@v3.0.1
-
-  self-test-network-integration:
+  self-ansible-lint:
+    uses: ./.github/workflows/ansible_lint.yaml
+  self-build-import:
+    uses: ./.github/workflows/build_import.yaml
+  self-sanity:
+    uses: ./.github/workflows/sanity.yaml
+  self-unit:
+    uses: ./.github/workflows/unit.yaml
+  self-integration:
+    uses: ./.github/workflows/integration.yaml
+  self-network-integration:
     uses: ./.github/workflows/network_integration.yaml
     with:
       lab_title: cisco_nxos
@@ -45,7 +54,12 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - lint
-      - self-test-network-integration
+      - self-ansible-lint
+      - self-build-import
+      - self-sanity
+      - self-unit
+      - self-integration
+      - self-network-integration
     steps:
       - name: Decide whether the needed jobs succeeded or failed
         uses: re-actors/alls-green@release/v1

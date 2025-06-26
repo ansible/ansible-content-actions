@@ -1,0 +1,28 @@
+# See https://docs.ansible.com/ansible/latest/dev_guide/collections_galaxy_meta.html
+
+namespace: community
+name: test_collection
+version: 1.0.0
+readme: README.md
+authors:
+  - Sorin Sbarnea (github/ssbarnea)
+description: Test collection used by content actions self-testing
+license:
+  - MIT
+tags:
+  - tools
+repository: https://github.com/ansible/ansible-content.actions
+homepage: https://github.com/ansible/ansible-content.actions
+issues: https://github.com/ansible/ansible-content.actions/issues
+build_ignore:
+  - "*.egg-info"
+  - "*.tar.gz"
+  - .ansible
+  - .github
+  - .gitignore
+  - .pre-commit-config.yaml
+  - .pytest_cache
+  - .yamllint
+  - action.yml
+  - changelogs/.plugin-cache.yaml
+  - collections

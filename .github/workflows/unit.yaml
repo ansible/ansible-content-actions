@@ -47,7 +47,7 @@ jobs:
           )
           echo "envlist=$merged" >> "$GITHUB_OUTPUT"
     outputs:
-      envlist: "${{ steps.generate-matrix.outputs.envlist }}"
+      envlist: "${{ steps.merge-matrix.outputs.envlist }}"
   test:
     needs: tox-matrix
     strategy:

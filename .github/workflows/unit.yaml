@@ -7,6 +7,9 @@ name: Ansible Unit
         required: false
         type: string
         default: ""
+      extra_matrix_entries:
+        required: false
+        type: string
 jobs:
   tox-matrix:
     name: Matrix Unit
@@ -29,6 +32,20 @@ jobs:
         run: >
           python -m tox --ansible --gh-matrix --matrix-scope unit --conf
           tox-ansible.ini
+      - name: Merge matrix with extra entries
+        id: merge-matrix
+        run: |
+          echo "Generated matrix: ${{ steps.generate-matrix.outputs.envlist }}"
+          echo "Extra matrix: ${{ inputs.extra_matrix_entries }}"
+          echo "Merged matrix:"
+
+          merged=$(
+            jq -c -n \
+              --argjson a "${{ steps.generate-matrix.outputs.envlist }}" \
+              --argjson b "${{ inputs.extra_matrix_entries || '[]' }}" \
+              '$a + $b'
+          )
+          echo "envlist=$merged" >> "$GITHUB_OUTPUT"
     outputs:
       envlist: "${{ steps.generate-matrix.outputs.envlist }}"
   test:

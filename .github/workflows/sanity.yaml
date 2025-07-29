@@ -38,8 +38,8 @@ jobs:
 
           merged=$(
             jq -c -n \
-              --argjson a "${{ steps.generate-matrix.outputs.envlist }}" \
-              --argjson b "${{ inputs.extra_matrix_entries || '[]' }}" \
+              --argjson a '${{ steps.generate-matrix.outputs.envlist }}' \
+              --argjson b '${{ inputs.extra_matrix_entries || '[]' }}' \
               '$a + $b'
           )
           echo "envlist=$merged" >> "$GITHUB_OUTPUT"

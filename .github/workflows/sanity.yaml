@@ -34,7 +34,6 @@ jobs:
         run: |
           echo "Generated matrix: ${{ steps.generate-matrix.outputs.envlist }}"
           echo "Extra matrix: ${{ inputs.extra_matrix_entries }}"
-          echo "Merged matrix:"
 
           merged=$(
             jq -c -n \
@@ -42,6 +41,7 @@ jobs:
               --argjson b '${{ inputs.extra_matrix_entries || '[]' }}' \
               '$a + $b'
           )
+          echo "Merged matrix: $merged"
           echo "envlist=$merged" >> "$GITHUB_OUTPUT"
     outputs:
       envlist: "${{ steps.merge-matrix.outputs.envlist }}"

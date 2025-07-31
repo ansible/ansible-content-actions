@@ -1,7 +1,12 @@
 ---
 name: Ansible sanity
+
 "on":
-  workflow_call: null
+  workflow_call:
+    inputs:
+      extra_matrix_entries:
+        required: false
+        type: string
 jobs:
   tox-matrix:
     name: Matrix Sanity
@@ -24,8 +29,22 @@ jobs:
         run: >
           python -m tox --ansible --gh-matrix --matrix-scope sanity --conf
           tox-ansible.ini
+      - name: Merge matrix with extra entries
+        id: merge-matrix
+        run: |
+          echo "Generated matrix: ${{ steps.generate-matrix.outputs.envlist }}"
+          echo "Extra matrix: ${{ inputs.extra_matrix_entries }}"
+
+          merged=$(
+            jq -c -n \
+              --argjson a '${{ steps.generate-matrix.outputs.envlist }}' \
+              --argjson b '${{ inputs.extra_matrix_entries || '[]' }}' \
+              '$a + $b'
+          )
+          echo "Merged matrix: $merged"
+          echo "envlist=$merged" >> "$GITHUB_OUTPUT"
     outputs:
-      envlist: "${{ steps.generate-matrix.outputs.envlist }}"
+      envlist: "${{ steps.merge-matrix.outputs.envlist }}"
   test:
     needs: tox-matrix
     strategy:

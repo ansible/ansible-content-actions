@@ -57,10 +57,11 @@ jobs:
           - stable-2.19
           # - stable-2.16
           # - stable-2.15
-          # - milestone
-          #- devel
+          - milestone
+          - devel
         python-version:
-          - "3.12"
+          - "3.12" # this should always be a common denominator for all the ansible versions
+          # https://github.com/ansible/tox-ansible/blob/main/src/tox_ansible/plugin.py#L45
         dependency-source:
           - github
 

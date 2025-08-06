@@ -147,12 +147,16 @@ jobs:
 
       - name: Create the lab title
         run: |
+          # Clean up matrix values by removing special characters
+          CLEAN_ANSIBLE_VERSION=$(echo "${{ matrix.ansible-version }}" | sed 's/[^a-zA-Z0-9]//g')
+          CLEAN_PYTHON_VERSION=$(echo "${{ matrix.python-version }}" | sed 's/[^a-zA-Z0-9]//g')
+
           if [[ "${{ github.event_name }}" == 'pull_request_target' ]]; then
-            echo "CLABTITLE=${{ inputs.lab_title }}_PR${{ github.event.pull_request.number }}" >> $GITHUB_ENV
+            echo "CLABTITLE=${{ inputs.lab_title }}_PR${{ github.event.pull_request.number }}_${CLEAN_ANSIBLE_VERSION}_py${CLEAN_PYTHON_VERSION}" >> $GITHUB_ENV
           elif [[ "${{ github.event_name }}" == 'workflow_dispatch' ]]; then
             shashort=$(git rev-parse --short HEAD)
             uuidval=$(uuidgen | cut -c 1-8)
-            echo "CLABTITLE=${{ inputs.lab_title }}_${shashort}_${uuidval}" >> $GITHUB_ENV
+            echo "CLABTITLE=${{ inputs.lab_title }}_${shashort}_${uuidval}_${CLEAN_ANSIBLE_VERSION}_py${CLEAN_PYTHON_VERSION}" >> $GITHUB_ENV
           fi
 
       - name: Print the lab title
@@ -195,5 +199,5 @@ jobs:
         if: ${{ !inputs.dry_run }}
         uses: coactions/upload-artifact@v4
         with:
-          name: logs
+          name: logs-${{ matrix.ansible-version }}-py${{ matrix.python-version }}
           path: /home/runner/test_logs/

@@ -57,14 +57,15 @@ jobs:
           - stable-2.19
           # - stable-2.16
           # - stable-2.15
-          # - milestone
-          #- devel
+          - milestone
+          - devel
         python-version:
-          - "3.12"
+          - "3.12" # this should always be a common denominator for all the ansible versions
+          # https://github.com/ansible/tox-ansible/blob/main/src/tox_ansible/plugin.py#L45
         dependency-source:
           - github
 
-    name: "py${{ matrix.python-version }} / ${{ matrix.ansible-version }} / ${{ matrix.dependency-source }}"
+    name: "Integration Tests - Python ${{ matrix.python-version }} / Ansible ${{ matrix.ansible-version }} / ${{ matrix.dependency-source }}"
     steps:
       - name: Checkout the collection repository
         uses: ansible-network/github_actions/.github/actions/checkout_dependency@main
@@ -90,8 +91,21 @@ jobs:
       - name: Install wheel now for faster builds
         run: python3 -m pip install wheel --upgrade
 
-      - name: Install ansible-core (${{ matrix.ansible-version }})
+      - name: Install ansible-core (${{ matrix.ansible-version }}) - Release/Tag
         run: python3 -m pip install https://github.com/ansible/ansible/archive/${{ matrix.ansible-version }}.tar.gz --disable-pip-version-check
+        if: ${{ !contains(matrix.ansible-version, 'devel') && !contains(matrix.ansible-version, 'milestone') }}
+
+      - name: Checkout ansible-core (${{ matrix.ansible-version }}) - Branch
+        uses: actions/checkout@v4
+        with:
+          repository: ansible/ansible
+          ref: ${{ matrix.ansible-version }}
+          path: ansible-core-source
+        if: ${{ contains(matrix.ansible-version, 'devel') || contains(matrix.ansible-version, 'milestone') }}
+
+      - name: Install ansible-core (${{ matrix.ansible-version }}) - Branch
+        run: python3 -m pip install ./ansible-core-source --disable-pip-version-check
+        if: ${{ contains(matrix.ansible-version, 'devel') || contains(matrix.ansible-version, 'milestone') }}
 
       - name: Pre install collections dependencies first so the collection install does not
         run: ansible-galaxy collection install --pre ${{ inputs.collection_pre_install }} -p /home/runner/collections

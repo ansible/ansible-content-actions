@@ -65,7 +65,7 @@ jobs:
         dependency-source:
           - github
 
-    name: "py${{ matrix.python-version }} / ${{ matrix.ansible-version }} / ${{ matrix.dependency-source }}"
+    name: "Integration Tests - Python ${{ matrix.python-version }} / Ansible ${{ matrix.ansible-version }} / ${{ matrix.dependency-source }}"
     steps:
       - name: Checkout the collection repository
         uses: ansible-network/github_actions/.github/actions/checkout_dependency@main

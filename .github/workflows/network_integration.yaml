@@ -110,13 +110,11 @@ jobs:
       - name: Parse PR body for dependency information
         id: parse_dependencies
         run: |
-          # Initialize variables
           echo "netcommon_pr=" >> $GITHUB_OUTPUT
           echo "utils_pr=" >> $GITHUB_OUTPUT
           echo "netcommon_fallback=" >> $GITHUB_OUTPUT
           echo "utils_fallback=" >> $GITHUB_OUTPUT
 
-          # Extract PR body (handle both pull_request and pull_request_target events)
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
             PR_BODY="${{ github.event.pull_request.body }}"
           elif [[ "${{ github.event_name }}" == "pull_request_target" ]]; then
@@ -125,13 +123,7 @@ jobs:
             PR_BODY=""
           fi
 
-          # Parse dependencies from PR body
           if [[ -n "$PR_BODY" ]]; then
-            # Look for "depends on" statements with PR URLs
-            # Format: depends on ansible-collections/ansible.netcommon/pull/711 or ansible-collections/ansible.utils#403
-
-                        # Extract netcommon dependency
-            # Look for patterns like: ansible-collections/ansible.netcommon/pull/711 or ansible-collections/ansible.netcommon#711
             NETCOMMON_PR=$(echo "$PR_BODY" | grep -i "depends on" | grep -o "ansible-collections/ansible\.netcommon[/pull]*[/#][0-9]\+" | head -1 | grep -o "[0-9]\+$" || echo "")
             if [[ -n "$NETCOMMON_PR" ]]; then
               echo "netcommon_pr=$NETCOMMON_PR" >> $GITHUB_OUTPUT
@@ -141,8 +133,6 @@ jobs:
               echo "No netcommon dependency found, will fallback to collection_pre_install"
             fi
 
-            # Extract utils dependency
-            # Look for patterns like: ansible-collections/ansible.utils/pull/403 or ansible-collections/ansible.utils#403
             UTILS_PR=$(echo "$PR_BODY" | grep -i "depends on" | grep -o "ansible-collections/ansible\.utils[/pull]*[/#][0-9]\+" | head -1 | grep -o "[0-9]\+$" || echo "")
             if [[ -n "$UTILS_PR" ]]; then
               echo "utils_pr=$UTILS_PR" >> $GITHUB_OUTPUT
@@ -178,13 +168,9 @@ jobs:
 
       - name: Pre install collections dependencies first so the collection install does not
         run: |
-          # Build collection install command based on dependencies and fallbacks
           INSTALL_CMD="ansible-galaxy collection install --pre"
-
-                    # Handle collection pre-install logic based on dependencies and fallbacks
           COLLECTIONS_TO_INSTALL=""
 
-          # Add netcommon if no PR dependency was found and it's in collection_pre_install
           if [[ "${{ steps.parse_dependencies.outputs.netcommon_fallback }}" == "true" ]]; then
             if [[ "${{ inputs.collection_pre_install }}" =~ ansible\.netcommon ]]; then
               NETCOMMON_VERSION=$(echo "${{ inputs.collection_pre_install }}" | grep -o "ansible\.netcommon[^[:space:]]*" | head -1)
@@ -194,7 +180,6 @@ jobs:
             fi
           fi
 
-          # Add utils if no PR dependency was found and it's in collection_pre_install
           if [[ "${{ steps.parse_dependencies.outputs.utils_fallback }}" == "true" ]]; then
             if [[ "${{ inputs.collection_pre_install }}" =~ ansible\.utils ]]; then
               UTILS_VERSION=$(echo "${{ inputs.collection_pre_install }}" | grep -o "ansible\.utils[^[:space:]]*" | head -1)
@@ -204,7 +189,6 @@ jobs:
             fi
           fi
 
-          # Add any other collections from collection_pre_install that aren't netcommon or utils
           if [[ -n "${{ inputs.collection_pre_install }}" ]]; then
             OTHER_COLLECTIONS=$(echo "${{ inputs.collection_pre_install }}" | sed 's/ansible\.netcommon[^[:space:]]*//g' | sed 's/ansible\.utils[^[:space:]]*//g' | xargs)
             if [[ -n "$OTHER_COLLECTIONS" ]]; then
@@ -212,7 +196,6 @@ jobs:
             fi
           fi
 
-          # Only run if there are collections to install
           if [[ -n "$COLLECTIONS_TO_INSTALL" ]]; then
             echo "Running: $INSTALL_CMD $COLLECTIONS_TO_INSTALL -p /home/runner/collections"
             $INSTALL_CMD $COLLECTIONS_TO_INSTALL -p /home/runner/collections
@@ -229,7 +212,6 @@ jobs:
 
       - name: Build and install dependency collections from PRs
         run: |
-          # Install netcommon dependency if checked out from PR
           if [[ -d "${{ env.dependency_directory }}/ansible_collections/ansible/netcommon" ]]; then
             echo "Installing ansible.netcommon from PR dependency"
             cd "${{ env.dependency_directory }}/ansible_collections/ansible/netcommon"
@@ -237,7 +219,6 @@ jobs:
             ansible-galaxy collection install /tmp/ansible-netcommon-*.tar.gz -p /home/runner/collections --force
           fi
 
-          # Install utils dependency if checked out from PR
           if [[ -d "${{ env.dependency_directory }}/ansible_collections/ansible/utils" ]]; then
             echo "Installing ansible.utils from PR dependency"
             cd "${{ env.dependency_directory }}/ansible_collections/ansible/utils"

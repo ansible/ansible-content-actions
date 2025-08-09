@@ -115,13 +115,7 @@ jobs:
           echo "netcommon_fallback=" >> $GITHUB_OUTPUT
           echo "utils_fallback=" >> $GITHUB_OUTPUT
 
-          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
-            PR_BODY="${{ github.event.pull_request.body }}"
-          elif [[ "${{ github.event_name }}" == "pull_request_target" ]]; then
-            PR_BODY="${{ github.event.pull_request.body }}"
-          else
-            PR_BODY=""
-          fi
+          PR_BODY="${{ github.event.pull_request.body }}"
 
           if [[ -n "$PR_BODY" ]]; then
             NETCOMMON_PR=$(echo "$PR_BODY" | grep -i "depends on" | grep -o "ansible-collections/ansible\.netcommon[/pull]*[/#][0-9]\+" | head -1 | grep -o "[0-9]\+$" || echo "")

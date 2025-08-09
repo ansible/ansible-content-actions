@@ -55,7 +55,7 @@ jobs:
         ansible-version:
           - stable-2.18
           - stable-2.19
-          # - stable-2.16
+          - stable-2.16
           # - stable-2.15
           - milestone
           - devel
@@ -181,32 +181,45 @@ jobs:
           # Build collection install command based on dependencies and fallbacks
           INSTALL_CMD="ansible-galaxy collection install --pre"
 
-          # Add netcommon if no PR dependency was found or if explicit collection_pre_install is provided
-          if [[ "${{ steps.parse_dependencies.outputs.netcommon_fallback }}" == "true" && "${{ inputs.collection_pre_install }}" =~ "netcommon" ]]; then
-            NETCOMMON_VERSION=$(echo "${{ inputs.collection_pre_install }}" | grep -o "ansible\.netcommon[^[:space:]]*" || echo "ansible.netcommon")
-            INSTALL_CMD="$INSTALL_CMD $NETCOMMON_VERSION"
+                    # Handle collection pre-install logic based on dependencies and fallbacks
+          COLLECTIONS_TO_INSTALL=""
+
+          # Add netcommon if no PR dependency was found and it's in collection_pre_install
+          if [[ "${{ steps.parse_dependencies.outputs.netcommon_fallback }}" == "true" ]]; then
+            if [[ "${{ inputs.collection_pre_install }}" =~ ansible\.netcommon ]]; then
+              NETCOMMON_VERSION=$(echo "${{ inputs.collection_pre_install }}" | grep -o "ansible\.netcommon[^[:space:]]*" | head -1)
+              if [[ -n "$NETCOMMON_VERSION" ]]; then
+                COLLECTIONS_TO_INSTALL="$COLLECTIONS_TO_INSTALL $NETCOMMON_VERSION"
+              fi
+            fi
           fi
 
-          # Add utils if no PR dependency was found or if explicit collection_pre_install is provided
-          if [[ "${{ steps.parse_dependencies.outputs.utils_fallback }}" == "true" && "${{ inputs.collection_pre_install }}" =~ "utils" ]]; then
-            UTILS_VERSION=$(echo "${{ inputs.collection_pre_install }}" | grep -o "ansible\.utils[^[:space:]]*" || echo "ansible.utils")
-            INSTALL_CMD="$INSTALL_CMD $UTILS_VERSION"
+          # Add utils if no PR dependency was found and it's in collection_pre_install
+          if [[ "${{ steps.parse_dependencies.outputs.utils_fallback }}" == "true" ]]; then
+            if [[ "${{ inputs.collection_pre_install }}" =~ ansible\.utils ]]; then
+              UTILS_VERSION=$(echo "${{ inputs.collection_pre_install }}" | grep -o "ansible\.utils[^[:space:]]*" | head -1)
+              if [[ -n "$UTILS_VERSION" ]]; then
+                COLLECTIONS_TO_INSTALL="$COLLECTIONS_TO_INSTALL $UTILS_VERSION"
+              fi
+            fi
           fi
 
           # Add any other collections from collection_pre_install that aren't netcommon or utils
-          OTHER_COLLECTIONS=$(echo "${{ inputs.collection_pre_install }}" | sed 's/ansible\.netcommon[^[:space:]]*//g' | sed 's/ansible\.utils[^[:space:]]*//g' | xargs)
-          if [[ -n "$OTHER_COLLECTIONS" ]]; then
-            INSTALL_CMD="$INSTALL_CMD $OTHER_COLLECTIONS"
+          if [[ -n "${{ inputs.collection_pre_install }}" ]]; then
+            OTHER_COLLECTIONS=$(echo "${{ inputs.collection_pre_install }}" | sed 's/ansible\.netcommon[^[:space:]]*//g' | sed 's/ansible\.utils[^[:space:]]*//g' | xargs)
+            if [[ -n "$OTHER_COLLECTIONS" ]]; then
+              COLLECTIONS_TO_INSTALL="$COLLECTIONS_TO_INSTALL $OTHER_COLLECTIONS"
+            fi
           fi
 
           # Only run if there are collections to install
-          if [[ "$INSTALL_CMD" != "ansible-galaxy collection install --pre" ]]; then
-            echo "Running: $INSTALL_CMD -p /home/runner/collections"
-            $INSTALL_CMD -p /home/runner/collections
+          if [[ -n "$COLLECTIONS_TO_INSTALL" ]]; then
+            echo "Running: $INSTALL_CMD $COLLECTIONS_TO_INSTALL -p /home/runner/collections"
+            $INSTALL_CMD $COLLECTIONS_TO_INSTALL -p /home/runner/collections
           else
             echo "No collections to pre-install"
           fi
-        if: inputs.collection_pre_install != '' || steps.parse_dependencies.outputs.netcommon_fallback == 'true' || steps.parse_dependencies.outputs.utils_fallback == 'true'
+        if: inputs.collection_pre_install != ''
 
       - name: Read collection metadata from galaxy.yml
         id: identify

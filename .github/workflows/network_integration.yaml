@@ -110,6 +110,7 @@ jobs:
       - name: Parse PR body for dependency information
         id: parse_dependencies
         run: |
+          sed -i 's/\r$//' "$0"
           echo "netcommon_pr=" >> $GITHUB_OUTPUT
           echo "utils_pr=" >> $GITHUB_OUTPUT
           echo "netcommon_fallback=" >> $GITHUB_OUTPUT
@@ -162,33 +163,28 @@ jobs:
 
       - name: Pre install collections dependencies first so the collection install does not
         run: |
+          sed -i 's/\r$//' "$0"
           INSTALL_CMD="ansible-galaxy collection install --pre"
           COLLECTIONS_TO_INSTALL=""
+          INPUT_SPECS="${{ inputs.collection_pre_install }}"
 
-          if [[ "${{ steps.parse_dependencies.outputs.netcommon_fallback }}" == "true" ]]; then
-            if [[ "${{ inputs.collection_pre_install }}" =~ ansible\.netcommon ]]; then
-              NETCOMMON_VERSION=$(echo "${{ inputs.collection_pre_install }}" | grep -o "ansible\.netcommon[^[:space:]]*" | head -1)
-              if [[ -n "$NETCOMMON_VERSION" ]]; then
-                COLLECTIONS_TO_INSTALL="$COLLECTIONS_TO_INSTALL $NETCOMMON_VERSION"
-              fi
+          for spec in $INPUT_SPECS; do
+            if [[ "${{ steps.parse_dependencies.outputs.netcommon_fallback }}" == "true" ]] && [[ "$spec" =~ (ansible\.netcommon|ansible-collections/ansible\.netcommon) ]]; then
+              COLLECTIONS_TO_INSTALL="$COLLECTIONS_TO_INSTALL $spec"
+              continue
             fi
-          fi
+            if [[ "${{ steps.parse_dependencies.outputs.utils_fallback }}" == "true" ]] && [[ "$spec" =~ (ansible\.utils|ansible-collections/ansible\.utils) ]]; then
+              COLLECTIONS_TO_INSTALL="$COLLECTIONS_TO_INSTALL $spec"
+              continue
+            fi
+          done
 
-          if [[ "${{ steps.parse_dependencies.outputs.utils_fallback }}" == "true" ]]; then
-            if [[ "${{ inputs.collection_pre_install }}" =~ ansible\.utils ]]; then
-              UTILS_VERSION=$(echo "${{ inputs.collection_pre_install }}" | grep -o "ansible\.utils[^[:space:]]*" | head -1)
-              if [[ -n "$UTILS_VERSION" ]]; then
-                COLLECTIONS_TO_INSTALL="$COLLECTIONS_TO_INSTALL $UTILS_VERSION"
-              fi
+          for spec in $INPUT_SPECS; do
+            if [[ "$spec" =~ (ansible\.netcommon|ansible-collections/ansible\.netcommon|ansible\.utils|ansible-collections/ansible\.utils) ]]; then
+              continue
             fi
-          fi
-
-          if [[ -n "${{ inputs.collection_pre_install }}" ]]; then
-            OTHER_COLLECTIONS=$(echo "${{ inputs.collection_pre_install }}" | sed 's/ansible\.netcommon[^[:space:]]*//g' | sed 's/ansible\.utils[^[:space:]]*//g' | xargs)
-            if [[ -n "$OTHER_COLLECTIONS" ]]; then
-              COLLECTIONS_TO_INSTALL="$COLLECTIONS_TO_INSTALL $OTHER_COLLECTIONS"
-            fi
-          fi
+            COLLECTIONS_TO_INSTALL="$COLLECTIONS_TO_INSTALL $spec"
+          done
 
           if [[ -n "$COLLECTIONS_TO_INSTALL" ]]; then
             echo "Running: $INSTALL_CMD $COLLECTIONS_TO_INSTALL -p /home/runner/collections"
@@ -206,6 +202,7 @@ jobs:
 
       - name: Build and install dependency collections from PRs
         run: |
+          sed -i 's/\r$//' "$0"
           if [[ -d "${{ env.dependency_directory }}/ansible_collections/ansible/netcommon" ]]; then
             echo "Installing ansible.netcommon from PR dependency"
             cd "${{ env.dependency_directory }}/ansible_collections/ansible/netcommon"

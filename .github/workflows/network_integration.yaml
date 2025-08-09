@@ -5,7 +5,7 @@ on:
       collection_pre_install:
         required: false
         type: string
-        default: ""
+        default: ''
       lab_title:
         required: false
         type: string
@@ -22,7 +22,7 @@ on:
         required: true
         type: string
       pytest_addopts:
-        default: ""
+        default: ''
         required: false
         type: string
       dry_run:
@@ -32,7 +32,7 @@ on:
       dry_run_repo:
         required: false
         type: string
-        default: ""
+        default: ''
 
     secrets:
       cml_ssh_password:
@@ -45,9 +45,9 @@ on:
 jobs:
   integration:
     env:
-      PY_COLORS: "1"
-      source_directory: "./source"
-      dependency_directory: "./dependency"
+      PY_COLORS: '1'
+      source_directory: './source'
+      dependency_directory: './dependency'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -60,19 +60,19 @@ jobs:
           - milestone
           - devel
         python-version:
-          - "3.12" # this should always be a common denominator for all the ansible versions
+          - '3.12' # this should always be a common denominator for all the ansible versions
           # https://github.com/ansible/tox-ansible/blob/main/src/tox_ansible/plugin.py#L45
         dependency-source:
           - github
 
-    name: "Integration Tests - Python ${{ matrix.python-version }} / Ansible ${{ matrix.ansible-version }} / ${{ matrix.dependency-source }}"
+    name: 'Integration Tests - Python ${{ matrix.python-version }} / Ansible ${{ matrix.ansible-version }} / ${{ matrix.dependency-source }}'
     steps:
       - name: Checkout the collection repository
         uses: ansible-network/github_actions/.github/actions/checkout_dependency@main
         with:
           path: ${{ env.source_directory }}
           ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: "0"
+          fetch-depth: '0'
         if: ${{ !inputs.dry_run }}
 
       - name: Checkout the collection repository
@@ -80,7 +80,7 @@ jobs:
         with:
           repository: ${{ inputs.dry_run_repo }}
           path: ${{ env.source_directory }}
-          fetch-depth: "0"
+          fetch-depth: '0'
         if: ${{ inputs.dry_run }}
 
       - name: Set up Python ${{ matrix.python-version }}
@@ -116,7 +116,7 @@ jobs:
           echo "netcommon_fallback=" >> $GITHUB_OUTPUT
           echo "utils_fallback=" >> $GITHUB_OUTPUT
 
-          PR_BODY="${{ github.event.pull_request.body }}"
+          PR_BODY=$(printf '%s' "${{ github.event.pull_request.body }}" | tr -d '\r')
 
           if [[ -n "$PR_BODY" ]]; then
             NETCOMMON_PR=$(echo "$PR_BODY" | grep -i "depends on" | grep -o "ansible-collections/ansible\.netcommon[/pull]*[/#][0-9]\+" | head -1 | grep -o "[0-9]\+$" || echo "")
@@ -149,7 +149,7 @@ jobs:
           repository: ansible-collections/ansible.netcommon
           ref: refs/pull/${{ steps.parse_dependencies.outputs.netcommon_pr }}/head
           path: ${{ env.dependency_directory }}/ansible_collections/ansible/netcommon
-          fetch-depth: "0"
+          fetch-depth: '0'
         if: ${{ !inputs.dry_run && steps.parse_dependencies.outputs.netcommon_pr != '' }}
 
       - name: Checkout ansible.utils dependency PR
@@ -158,7 +158,7 @@ jobs:
           repository: ansible-collections/ansible.utils
           ref: refs/pull/${{ steps.parse_dependencies.outputs.utils_pr }}/head
           path: ${{ env.dependency_directory }}/ansible_collections/ansible/utils
-          fetch-depth: "0"
+          fetch-depth: '0'
         if: ${{ !inputs.dry_run && steps.parse_dependencies.outputs.utils_pr != '' }}
 
       - name: Pre install collections dependencies first so the collection install does not
@@ -238,7 +238,7 @@ jobs:
 
       - name: Clear current lab id if any
         if: ${{ !inputs.dry_run }}
-        run: "cml clear"
+        run: 'cml clear'
         continue-on-error: true
         env:
           CML_VERIFY_CERT: false
@@ -276,7 +276,7 @@ jobs:
           --cml-lab ${{ inputs.cml_lab }}
           ${{ inputs.pytest_addopts }}
         env:
-          ANSIBLE_FORCE_COLOR: "1"
+          ANSIBLE_FORCE_COLOR: '1'
           ANSIBLE_NETWORK_OS: ${{ inputs.network_os }}
           CML_SSH_PASSWORD: ${{ secrets.cml_ssh_password }}
           CML_SSH_PORT: 1122

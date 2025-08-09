@@ -110,34 +110,28 @@ jobs:
       - name: Parse PR body for dependency information
         id: parse_dependencies
         run: |
-          sed -i 's/\r$//' "$0"
           echo "netcommon_pr=" >> $GITHUB_OUTPUT
           echo "utils_pr=" >> $GITHUB_OUTPUT
           echo "netcommon_fallback=" >> $GITHUB_OUTPUT
           echo "utils_fallback=" >> $GITHUB_OUTPUT
 
-          PR_BODY=$(printf '%s' "${{ github.event.pull_request.body }}" | tr -d '\r')
+          PR_BODY=$(python3 -c "import json, os; p=os.environ.get('GITHUB_EVENT_PATH'); d=json.load(open(p,'r',encoding='utf-8')) if p else {}; b=(d.get('pull_request') or {}).get('body') or ''; print(b.replace('\r',''))")
 
           if [[ -n "$PR_BODY" ]]; then
-            NETCOMMON_PR=$(echo "$PR_BODY" | grep -i "depends on" | grep -o "ansible-collections/ansible\.netcommon[/pull]*[/#][0-9]\+" | head -1 | grep -o "[0-9]\+$" || echo "")
+            NETCOMMON_PR=$(printf '%s\n' "$PR_BODY" | awk 'BEGIN{IGNORECASE=1} /depends on/ { if (match($0, /ansible-collections\/ansible\.netcommon(\/pull)?(\/#)?([0-9]+)/, m)) print m[3] }' | head -1)
             if [[ -n "$NETCOMMON_PR" ]]; then
               echo "netcommon_pr=$NETCOMMON_PR" >> $GITHUB_OUTPUT
-              echo "Found netcommon dependency: PR #$NETCOMMON_PR"
             else
               echo "netcommon_fallback=true" >> $GITHUB_OUTPUT
-              echo "No netcommon dependency found, will fallback to collection_pre_install"
             fi
 
-            UTILS_PR=$(echo "$PR_BODY" | grep -i "depends on" | grep -o "ansible-collections/ansible\.utils[/pull]*[/#][0-9]\+" | head -1 | grep -o "[0-9]\+$" || echo "")
+            UTILS_PR=$(printf '%s\n' "$PR_BODY" | awk 'BEGIN{IGNORECASE=1} /depends on/ { if (match($0, /ansible-collections\/ansible\.utils(\/pull)?(\/#)?([0-9]+)/, m)) print m[3] }' | head -1)
             if [[ -n "$UTILS_PR" ]]; then
               echo "utils_pr=$UTILS_PR" >> $GITHUB_OUTPUT
-              echo "Found utils dependency: PR #$UTILS_PR"
             else
               echo "utils_fallback=true" >> $GITHUB_OUTPUT
-              echo "No utils dependency found, will fallback to collection_pre_install"
             fi
           else
-            echo "No PR body found, will fallback to collection_pre_install for all dependencies"
             echo "netcommon_fallback=true" >> $GITHUB_OUTPUT
             echo "utils_fallback=true" >> $GITHUB_OUTPUT
           fi

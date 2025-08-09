@@ -5,7 +5,7 @@ on:
       collection_pre_install:
         required: false
         type: string
-        default: ""
+        default: ''
       lab_title:
         required: false
         type: string
@@ -22,7 +22,7 @@ on:
         required: true
         type: string
       pytest_addopts:
-        default: ""
+        default: ''
         required: false
         type: string
       dry_run:
@@ -32,7 +32,7 @@ on:
       dry_run_repo:
         required: false
         type: string
-        default: ""
+        default: ''
 
     secrets:
       cml_ssh_password:
@@ -45,9 +45,9 @@ on:
 jobs:
   integration:
     env:
-      PY_COLORS: "1"
-      source_directory: "./source"
-      dependency_directory: "./dependency"
+      PY_COLORS: '1'
+      source_directory: './source'
+      dependency_directory: './dependency'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -60,19 +60,19 @@ jobs:
           - milestone
           - devel
         python-version:
-          - "3.12" # this should always be a common denominator for all the ansible versions
+          - '3.12' # this should always be a common denominator for all the ansible versions
           # https://github.com/ansible/tox-ansible/blob/main/src/tox_ansible/plugin.py#L45
         dependency-source:
           - github
 
-    name: "Integration Tests - Python ${{ matrix.python-version }} / Ansible ${{ matrix.ansible-version }} / ${{ matrix.dependency-source }}"
+    name: 'Integration Tests - Python ${{ matrix.python-version }} / Ansible ${{ matrix.ansible-version }} / ${{ matrix.dependency-source }}'
     steps:
       - name: Checkout the collection repository
         uses: ansible-network/github_actions/.github/actions/checkout_dependency@main
         with:
           path: ${{ env.source_directory }}
           ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: "0"
+          fetch-depth: '0'
         if: ${{ !inputs.dry_run }}
 
       - name: Checkout the collection repository
@@ -80,7 +80,7 @@ jobs:
         with:
           repository: ${{ inputs.dry_run_repo }}
           path: ${{ env.source_directory }}
-          fetch-depth: "0"
+          fetch-depth: '0'
         if: ${{ inputs.dry_run }}
 
       - name: Set up Python ${{ matrix.python-version }}
@@ -164,7 +164,7 @@ jobs:
           repository: ansible-collections/ansible.netcommon
           ref: refs/pull/${{ steps.parse_dependencies.outputs.netcommon_pr }}/head
           path: ${{ env.dependency_directory }}/ansible_collections/ansible/netcommon
-          fetch-depth: "0"
+          fetch-depth: '0'
         if: ${{ !inputs.dry_run && steps.parse_dependencies.outputs.netcommon_pr != '' }}
 
       - name: Checkout ansible.utils dependency PR
@@ -173,7 +173,7 @@ jobs:
           repository: ansible-collections/ansible.utils
           ref: refs/pull/${{ steps.parse_dependencies.outputs.utils_pr }}/head
           path: ${{ env.dependency_directory }}/ansible_collections/ansible/utils
-          fetch-depth: "0"
+          fetch-depth: '0'
         if: ${{ !inputs.dry_run && steps.parse_dependencies.outputs.utils_pr != '' }}
 
       - name: Pre install collections dependencies first so the collection install does not
@@ -181,32 +181,45 @@ jobs:
           # Build collection install command based on dependencies and fallbacks
           INSTALL_CMD="ansible-galaxy collection install --pre"
 
-          # Add netcommon if no PR dependency was found or if explicit collection_pre_install is provided
-          if [[ "${{ steps.parse_dependencies.outputs.netcommon_fallback }}" == "true" && "${{ inputs.collection_pre_install }}" =~ "netcommon" ]]; then
-            NETCOMMON_VERSION=$(echo "${{ inputs.collection_pre_install }}" | grep -o "ansible\.netcommon[^[:space:]]*" || echo "ansible.netcommon")
-            INSTALL_CMD="$INSTALL_CMD $NETCOMMON_VERSION"
+                    # Handle collection pre-install logic based on dependencies and fallbacks
+          COLLECTIONS_TO_INSTALL=""
+
+          # Add netcommon if no PR dependency was found and it's in collection_pre_install
+          if [[ "${{ steps.parse_dependencies.outputs.netcommon_fallback }}" == "true" ]]; then
+            if [[ "${{ inputs.collection_pre_install }}" =~ ansible\.netcommon ]]; then
+              NETCOMMON_VERSION=$(echo "${{ inputs.collection_pre_install }}" | grep -o "ansible\.netcommon[^[:space:]]*" | head -1)
+              if [[ -n "$NETCOMMON_VERSION" ]]; then
+                COLLECTIONS_TO_INSTALL="$COLLECTIONS_TO_INSTALL $NETCOMMON_VERSION"
+              fi
+            fi
           fi
 
-          # Add utils if no PR dependency was found or if explicit collection_pre_install is provided
-          if [[ "${{ steps.parse_dependencies.outputs.utils_fallback }}" == "true" && "${{ inputs.collection_pre_install }}" =~ "utils" ]]; then
-            UTILS_VERSION=$(echo "${{ inputs.collection_pre_install }}" | grep -o "ansible\.utils[^[:space:]]*" || echo "ansible.utils")
-            INSTALL_CMD="$INSTALL_CMD $UTILS_VERSION"
+          # Add utils if no PR dependency was found and it's in collection_pre_install
+          if [[ "${{ steps.parse_dependencies.outputs.utils_fallback }}" == "true" ]]; then
+            if [[ "${{ inputs.collection_pre_install }}" =~ ansible\.utils ]]; then
+              UTILS_VERSION=$(echo "${{ inputs.collection_pre_install }}" | grep -o "ansible\.utils[^[:space:]]*" | head -1)
+              if [[ -n "$UTILS_VERSION" ]]; then
+                COLLECTIONS_TO_INSTALL="$COLLECTIONS_TO_INSTALL $UTILS_VERSION"
+              fi
+            fi
           fi
 
           # Add any other collections from collection_pre_install that aren't netcommon or utils
-          OTHER_COLLECTIONS=$(echo "${{ inputs.collection_pre_install }}" | sed 's/ansible\.netcommon[^[:space:]]*//g' | sed 's/ansible\.utils[^[:space:]]*//g' | xargs)
-          if [[ -n "$OTHER_COLLECTIONS" ]]; then
-            INSTALL_CMD="$INSTALL_CMD $OTHER_COLLECTIONS"
+          if [[ -n "${{ inputs.collection_pre_install }}" ]]; then
+            OTHER_COLLECTIONS=$(echo "${{ inputs.collection_pre_install }}" | sed 's/ansible\.netcommon[^[:space:]]*//g' | sed 's/ansible\.utils[^[:space:]]*//g' | xargs)
+            if [[ -n "$OTHER_COLLECTIONS" ]]; then
+              COLLECTIONS_TO_INSTALL="$COLLECTIONS_TO_INSTALL $OTHER_COLLECTIONS"
+            fi
           fi
 
           # Only run if there are collections to install
-          if [[ "$INSTALL_CMD" != "ansible-galaxy collection install --pre" ]]; then
-            echo "Running: $INSTALL_CMD -p /home/runner/collections"
-            $INSTALL_CMD -p /home/runner/collections
+          if [[ -n "$COLLECTIONS_TO_INSTALL" ]]; then
+            echo "Running: $INSTALL_CMD $COLLECTIONS_TO_INSTALL -p /home/runner/collections"
+            $INSTALL_CMD $COLLECTIONS_TO_INSTALL -p /home/runner/collections
           else
             echo "No collections to pre-install"
           fi
-        if: inputs.collection_pre_install != '' || steps.parse_dependencies.outputs.netcommon_fallback == 'true' || steps.parse_dependencies.outputs.utils_fallback == 'true'
+        if: inputs.collection_pre_install != ''
 
       - name: Read collection metadata from galaxy.yml
         id: identify
@@ -253,7 +266,7 @@ jobs:
 
       - name: Clear current lab id if any
         if: ${{ !inputs.dry_run }}
-        run: "cml clear"
+        run: 'cml clear'
         continue-on-error: true
         env:
           CML_VERIFY_CERT: false
@@ -291,7 +304,7 @@ jobs:
           --cml-lab ${{ inputs.cml_lab }}
           ${{ inputs.pytest_addopts }}
         env:
-          ANSIBLE_FORCE_COLOR: "1"
+          ANSIBLE_FORCE_COLOR: '1'
           ANSIBLE_NETWORK_OS: ${{ inputs.network_os }}
           CML_SSH_PASSWORD: ${{ secrets.cml_ssh_password }}
           CML_SSH_PORT: 1122

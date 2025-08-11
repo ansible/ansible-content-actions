@@ -118,7 +118,15 @@ jobs:
           PR_BODY=$(python3 -c "import json, os; p=os.environ.get('GITHUB_EVENT_PATH'); d=json.load(open(p,'r',encoding='utf-8')) if p else {}; b=(d.get('pull_request') or {}).get('body') or ''; print(b.replace('\r',''))")
 
           if [[ -n "$PR_BODY" ]]; then
-            NET_URL=$(printf '%s\n' "$PR_BODY" | grep -Eo 'https://github.com/ansible-collections/ansible\.netcommon/pull/[0-9]+' | head -1 || true)
+            # Only consider links on lines that declare dependency, e.g. "Depends on" or "Depends-on"
+            DEP_LINES=$(printf '%s\n' "$PR_BODY" | grep -iE 'depends[[:space:]-]*on' || true)
+            if [[ -z "$DEP_LINES" ]]; then
+              echo "netcommon_fallback=true" >> $GITHUB_OUTPUT
+              echo "utils_fallback=true" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+
+            NET_URL=$(printf '%s\n' "$DEP_LINES" | grep -Eo 'https://github.com/ansible-collections/ansible\.netcommon/pull/[0-9]+' | head -1 || true)
             if [[ -n "$NET_URL" ]]; then
               NETCOMMON_PR=$(sed -E 's#.*/pull/([0-9]+).*#\1#' <<<"$NET_URL")
               echo "netcommon_pr=$NETCOMMON_PR" >> $GITHUB_OUTPUT
@@ -126,7 +134,7 @@ jobs:
               echo "netcommon_fallback=true" >> $GITHUB_OUTPUT
             fi
 
-            UTL_URL=$(printf '%s\n' "$PR_BODY" | grep -Eo 'https://github.com/ansible-collections/ansible\.utils/pull/[0-9]+' | head -1 || true)
+            UTL_URL=$(printf '%s\n' "$DEP_LINES" | grep -Eo 'https://github.com/ansible-collections/ansible\.utils/pull/[0-9]+' | head -1 || true)
             if [[ -n "$UTL_URL" ]]; then
               UTILS_PR=$(sed -E 's#.*/pull/([0-9]+).*#\1#' <<<"$UTL_URL")
               echo "utils_pr=$UTILS_PR" >> $GITHUB_OUTPUT

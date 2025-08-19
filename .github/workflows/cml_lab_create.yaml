@@ -88,7 +88,7 @@ jobs:
         run: |
           cat > cml_boot.yml <<'YAML'
           ---
-          - name: One good day
+          - name: Create CML lab for operation - {{ cml_lab }}
             hosts: localhost
             gather_facts: false
             tasks:
@@ -102,6 +102,10 @@ jobs:
                   topology: "{{ lookup('template', topology_path) }}"
                   wait: "yes"
 
+              - name: Sleep for 300 seconds and continue with play
+                ansible.builtin.wait_for:
+                  timeout: 300
+
               - name: Collect Facts
                 cisco.cml.cml_lab_facts:
                   host:  "{{ cml_host }}"
@@ -111,7 +115,7 @@ jobs:
                 register: lab_results
 
               - name: Create simple facts with nodes and ansible_host
-                set_fact:
+                ansible.builtin.set_fact:
                   simple_appliance_facts:
                     nodes: >-
                       {%- set result = {} -%}
@@ -123,7 +127,7 @@ jobs:
                       {{ result }}
 
               - name: Write outputs to files
-                copy:
+                ansible.builtin.copy:
                   content: |
                     {{ simple_appliance_facts | to_json }}
                   dest: ./simple_appliance_facts.json

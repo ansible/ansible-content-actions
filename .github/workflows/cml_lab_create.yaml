@@ -104,7 +104,7 @@ jobs:
 
               - name: Sleep for 300 seconds and continue with play
                 ansible.builtin.wait_for:
-                  timeout: 300
+                  timeout: 180
 
               - name: Collect Facts
                 cisco.cml.cml_lab_facts:

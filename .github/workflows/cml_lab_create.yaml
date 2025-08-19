@@ -20,12 +20,18 @@ on:
         required: false
       virl_password:
         required: true
+    outputs:
+      lab_nodes_json:
+        description: 'JSON string of nodes with ansible_host'
+        value: ${{ jobs.create-topology.outputs.lab_nodes_json }}
 
 jobs:
-  wait_for_topology:
+  create-topology:
     runs-on: ubuntu-latest
     env:
       PY_COLORS: '1'
+    outputs:
+      lab_nodes_json: ${{ steps.extract.outputs.lab_nodes_json }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -95,7 +101,6 @@ jobs:
                   state: started
                   topology: "{{ lookup('template', topology_path) }}"
                   wait: "yes"
-                register: results
 
               - name: Collect Facts
                 cisco.cml.cml_lab_facts:
@@ -103,7 +108,25 @@ jobs:
                   user: "admin"
                   password: "{{ cml_password }}"
                   lab: "{{ cml_lab }}"
-                register: result
+                register: lab_results
+
+              - name: Create simple facts with nodes and ansible_host
+                set_fact:
+                  simple_appliance_facts:
+                    nodes: >-
+                      {%- set result = {} -%}
+                      {%- for node_name, node_data in lab_results.cml_facts.nodes.items() -%}
+                        {%- if node_data.ansible_host is defined -%}
+                          {%- set _ = result.update({node_name: node_data.ansible_host}) -%}
+                        {%- endif -%}
+                      {%- endfor -%}
+                      {{ result }}
+
+                - name: Write outputs to files
+                  copy:
+                    content: |
+                      {{ simple_appliance_facts | to_json }}
+                    dest: ./simple_appliance_facts.json
           YAML
 
       - name: Run playbook
@@ -123,3 +146,13 @@ jobs:
             -e cml_password="$CML_PASSWORD" \
             -e cml_lab="$CML_LAB" \
             -e topology_path="${{ steps.topo.outputs.path }}"
+
+      - name: Run CML extraction playbook
+        id: extract
+        run: |
+          # Read outputs and set as GitHub Action outputs
+          LAB_NODES_JSON=$(cat ./simple_appliance_facts.json)
+
+          echo "lab_nodes_json=${LAB_NODES_JSON}" >> $GITHUB_OUTPUT
+
+          echo "Extracted nodes: ${LAB_NODES_JSON}"

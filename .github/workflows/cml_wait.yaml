@@ -89,7 +89,7 @@ jobs:
               - name: Create the lab
                 cisco.cml.cml_lab:
                   host: "{{ cml_host }}"
-                  user: "sysadmin"
+                  user: "admin"
                   password: "{{ cml_password }}"
                   lab: "{{ cml_lab }}"
                   state: started
@@ -100,7 +100,7 @@ jobs:
               - name: Collect Facts
                 cisco.cml.cml_lab_facts:
                   host:  "{{ cml_host }}"
-                  user: "sysadmin"
+                  user: "admin"
                   password: "{{ cml_password }}"
                   lab: "{{ cml_lab }}"
                 register: result

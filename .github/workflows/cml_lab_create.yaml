@@ -122,11 +122,11 @@ jobs:
                       {%- endfor -%}
                       {{ result }}
 
-                - name: Write outputs to files
-                  copy:
-                    content: |
-                      {{ simple_appliance_facts | to_json }}
-                    dest: ./simple_appliance_facts.json
+              - name: Write outputs to files
+                copy:
+                  content: |
+                    {{ simple_appliance_facts | to_json }}
+                  dest: ./simple_appliance_facts.json
           YAML
 
       - name: Run playbook

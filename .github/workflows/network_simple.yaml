@@ -1,0 +1,86 @@
+name: Network simple tests
+
+on:
+  workflow_call:
+    inputs:
+      ansible_version:
+        description: Ansible-core ref to test (e.g. milestone, devel, stable-2.18)
+        required: true
+        type: string
+      lab_nodes:
+        description: JSON data with lab node information to pass to tests
+        required: true
+        type: string
+    secrets: {}
+
+jobs:
+  integration:
+    name: 'Integration - Ansible ${{ inputs.ansible_version }}'
+    runs-on: ubuntu-latest
+    env:
+      PY_COLORS: '1'
+      source_directory: './source'
+      ANSIBLE_COLLECTIONS_PATHS: '/home/runner/collections:~/.ansible/collections:/usr/share/ansible/collections'
+    steps:
+      - name: Checkout collection (PR or ref)
+        uses: actions/checkout@v4
+        with:
+          path: ${{ env.source_directory }}
+          fetch-depth: 0
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Upgrade pip and wheel
+        run: python3 -m pip install --upgrade pip wheel
+
+      - name: Install ansible-core (${{ inputs.ansible_version }}) - Release/Tag
+        run: python3 -m pip install https://github.com/ansible/ansible/archive/${{ inputs.ansible_version }}.tar.gz --disable-pip-version-check
+        if: ${{ !contains(inputs.ansible_version, 'devel') && !contains(inputs.ansible_version, 'milestone') }}
+
+      - name: Checkout ansible-core (${{ inputs.ansible_version }}) - Branch
+        uses: actions/checkout@v4
+        with:
+          repository: ansible/ansible
+          ref: ${{ inputs.ansible_version }}
+          path: ansible-core-source
+        if: ${{ contains(inputs.ansible_version, 'devel') || contains(inputs.ansible_version, 'milestone') }}
+
+      - name: Install ansible-core (${{ inputs.ansible_version }}) - Branch
+        run: python3 -m pip install ./ansible-core-source --disable-pip-version-check
+        if: ${{ contains(inputs.ansible_version, 'devel') || contains(inputs.ansible_version, 'milestone') }}
+
+      - name: Read collection metadata from galaxy.yml
+        id: identify
+        uses: ansible-network/github_actions/.github/actions/identify_collection@main
+        with:
+          source_path: ${{ env.source_directory }}
+
+      - name: Build and install the collection
+        uses: ansible-network/github_actions/.github/actions/build_install_collection@main
+        with:
+          install_python_dependencies: true
+          source_path: ${{ env.source_directory }}
+          collection_path: ${{ steps.identify.outputs.collection_path }}
+          tar_file: ${{ steps.identify.outputs.tar_file }}
+          ansible_version: ${{ inputs.ansible_version }}
+
+      - name: Print the ansible version
+        run: ansible --version
+
+      - name: Debug lab_nodes input
+        shell: bash
+        env:
+          LAB_NODES: ${{ inputs.lab_nodes }}
+        run: |
+          echo 'LAB_NODES (raw):'
+          echo "$LAB_NODES"
+          echo
+
+      - name: Run ansible-test network-integration
+        run: ansible-test network-integration -vvvv
+        working-directory: ${{ steps.identify.outputs.collection_path }}
+        env:
+          LAB_NODES: ${{ inputs.lab_nodes }}

@@ -79,8 +79,43 @@ jobs:
           echo "$LAB_NODES"
           echo
 
+      - name: Generate inventory from lab_nodes and template
+        id: render_inventory
+        shell: bash
+        working-directory: ${{ steps.identify.outputs.collection_path }}
+        env:
+          LAB_NODES_JSON: ${{ inputs.lab_nodes }}
+          ANSIBLE_VERSION_KEY: ${{ inputs.ansible_version }}
+          RUNNER_TEMP: ${{ runner.temp }}
+        run: |
+          set -euo pipefail
+          if ! command -v jq >/dev/null 2>&1; then
+            sudo apt-get update -y >/dev/null 2>&1 || true
+            sudo apt-get install -y jq >/dev/null 2>&1 || true
+          fi
+          ansible_host=$(echo "$LAB_NODES_JSON" | jq -r ".nodes[\"$ANSIBLE_VERSION_KEY\"]")
+          if [ -z "$ansible_host" ] || [ "$ansible_host" = "null" ]; then
+            echo "No node found for key: $ANSIBLE_VERSION_KEY"
+            echo "Available keys:" $(echo "$LAB_NODES_JSON" | jq -r '.nodes | keys | join(", ")')
+            exit 1
+          fi
+          last_octet="${ansible_host##*.}"
+          ssh_port=$((last_octet + 2000))
+          dest_host="54.190.208.146"
+          out_file="$RUNNER_TEMP/inventory-$ANSIBLE_VERSION_KEY.ini"
+          ansible localhost -c local -m template -a "src=tests/integration/labs/inventory.j2 dest=$out_file mode=0644" \
+            -e ansible_host=$dest_host ansible_ssh_port=$ssh_port"
+          echo "inventory_path=$out_file" >> "$GITHUB_OUTPUT"
+
+      - name: Debug inventory
+        shell: bash
+        run: |
+          echo "Inventory path: ${{ steps.render_inventory.outputs.inventory_path }}"
+          echo
+          cat "${{ steps.render_inventory.outputs.inventory_path }}"
+
       - name: Run ansible-test network-integration
-        run: ansible-test network-integration -vvvv
+        run: ansible-test network-integration --inventory "${{ steps.render_inventory.outputs.inventory_path }}" -vvvv
         working-directory: ${{ steps.identify.outputs.collection_path }}
         env:
           LAB_NODES: ${{ inputs.lab_nodes }}

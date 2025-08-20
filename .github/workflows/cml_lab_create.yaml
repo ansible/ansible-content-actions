@@ -159,4 +159,4 @@ jobs:
 
           echo "lab_nodes_json=${LAB_NODES_JSON}" >> $GITHUB_OUTPUT
 
-          echo "Extracted nodes: ${LAB_NODES_JSON}"
+          # echo "Extracted nodes: ${LAB_NODES_JSON}"

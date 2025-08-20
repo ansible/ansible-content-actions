@@ -70,14 +70,14 @@ jobs:
       - name: Print the ansible version
         run: ansible --version
 
-      - name: Debug lab_nodes input
-        shell: bash
-        env:
-          LAB_NODES: ${{ inputs.lab_nodes }}
-        run: |
-          echo 'LAB_NODES (raw):'
-          echo "$LAB_NODES"
-          echo
+      # - name: Debug lab_nodes input
+      #   shell: bash
+      #   env:
+      #     LAB_NODES: ${{ inputs.lab_nodes }}
+      #   run: |
+      #     echo 'LAB_NODES (raw):'
+      #     echo "$LAB_NODES"
+      #     echo
 
       - name: Generate inventory from lab_nodes and template
         id: render_inventory
@@ -107,12 +107,12 @@ jobs:
             -e "host_label=$ANSIBLE_VERSION_KEY ansible_host=$dest_host ansible_ssh_port=$ssh_port"
           echo "inventory_path=$out_file" >> "$GITHUB_OUTPUT"
 
-      - name: Debug inventory
-        shell: bash
-        run: |
-          echo "Inventory path: ${{ steps.render_inventory.outputs.inventory_path }}"
-          echo
-          cat "${{ steps.render_inventory.outputs.inventory_path }}"
+      # - name: Debug inventory
+      #   shell: bash
+      #   run: |
+      #     echo "Inventory path: ${{ steps.render_inventory.outputs.inventory_path }}"
+      #     echo
+      #     cat "${{ steps.render_inventory.outputs.inventory_path }}"
 
       - name: Run ansible-test network-integration
         run: ansible-test network-integration --inventory "${{ steps.render_inventory.outputs.inventory_path }}" -vvvv

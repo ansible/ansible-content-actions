@@ -34,7 +34,7 @@ jobs:
           python-version: '3.12'
 
       - name: Upgrade pip and wheel
-        run: python3 -m pip install --upgrade pip wheel
+        run: python3 -m pip install --upgrade pip wheel ansible-pylibssh
 
       - name: Install ansible-core (${{ inputs.ansible_version }}) - Release/Tag
         run: python3 -m pip install https://github.com/ansible/ansible/archive/${{ inputs.ansible_version }}.tar.gz --disable-pip-version-check

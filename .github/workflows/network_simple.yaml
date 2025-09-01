@@ -22,11 +22,12 @@ jobs:
       source_directory: './source'
       ANSIBLE_COLLECTIONS_PATHS: '/home/runner/collections:~/.ansible/collections:/usr/share/ansible/collections'
     steps:
-      - name: Checkout collection (PR or ref)
-        uses: actions/checkout@v4
+      - name: Checkout the collection repository
+        uses: ansible-network/github_actions/.github/actions/checkout_dependency@main
         with:
           path: ${{ env.source_directory }}
-          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: "0"
 
       - name: Set up Python 3.12
         uses: actions/setup-python@v5

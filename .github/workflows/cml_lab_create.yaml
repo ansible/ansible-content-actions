@@ -12,7 +12,7 @@ on:
         description: Optional lab title override; if empty uses PR title
         required: false
         type: string
-        default: ''
+        default: ""
     secrets:
       virl_host:
         required: true
@@ -22,14 +22,14 @@ on:
         required: true
     outputs:
       lab_nodes_json:
-        description: 'JSON string of nodes with ansible_host'
+        description: "JSON string of nodes with ansible_host"
         value: ${{ jobs.create-topology.outputs.lab_nodes_json }}
 
 jobs:
   create-topology:
     runs-on: ubuntu-latest
     env:
-      PY_COLORS: '1'
+      PY_COLORS: "1"
     outputs:
       lab_nodes_json: ${{ steps.extract.outputs.lab_nodes_json }}
     steps:
@@ -70,7 +70,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
       - name: Install ansible and CML collection
         shell: bash
@@ -140,7 +140,7 @@ jobs:
           CML_USERNAME: ${{ secrets.virl_username || 'admin' }}
           CML_PASSWORD: ${{ secrets.virl_password }}
           CML_LAB: ${{ steps.lab.outputs.title }}
-          CML_VERIFY_CERT: 'false'
+          CML_VERIFY_CERT: "false"
         run: |
           set -euo pipefail
           echo "Starting lab: $CML_LAB using topology: ${{ steps.topo.outputs.path }}"

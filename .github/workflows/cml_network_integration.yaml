@@ -1,4 +1,4 @@
-name: Network simple tests
+name: Integration tests with CML
 
 on:
   workflow_call:
@@ -17,6 +17,7 @@ jobs:
   integration:
     name: 'With - ${{ inputs.ansible_version }}'
     runs-on: ubuntu-latest
+    if: ${{ !github.event.pull_request || contains(github.event.pull_request.labels.*.name, 'safe to test') }}
     env:
       PY_COLORS: '1'
       source_directory: './source'
@@ -27,7 +28,7 @@ jobs:
         with:
           path: ${{ env.source_directory }}
           ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: "0"
+          fetch-depth: '0'
 
       - name: Set up Python 3.12
         uses: actions/setup-python@v5

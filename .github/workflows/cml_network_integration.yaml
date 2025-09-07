@@ -11,11 +11,16 @@ on:
         description: JSON data with lab node information to pass to tests
         required: true
         type: string
+      cli_ssh_type:
+        description: CLI SSH transport to use (e.g., libssh, paramiko)
+        required: false
+        type: string
+        default: libssh
     secrets: {}
 
 jobs:
   integration:
-    name: 'With - ${{ inputs.ansible_version }}'
+    name: '${{ inputs.cli_ssh_type }} & ansible-core ${{ inputs.ansible_version }}'
     runs-on: ubuntu-latest
     if: ${{ !github.event.pull_request || contains(github.event.pull_request.labels.*.name, 'safe to test') }}
     env:
@@ -35,8 +40,20 @@ jobs:
         with:
           python-version: '3.12'
 
+      - name: Show pip list before installs
+        run: |
+          python3 -m pip --version
+          python3 -m pip list | sort
+
       - name: Upgrade pip and wheel
-        run: python3 -m pip install --upgrade pip wheel ansible-pylibssh
+        run: python3 -m pip install --upgrade pip wheel ansible-pylibssh paramiko scp
+
+      - name: Show pip list after base deps install
+        run: |
+          python3 -m pip list | sort
+
+      - name: Check libssh version
+        run: dpkg -l | grep libssh
 
       - name: Install ansible-core (${{ inputs.ansible_version }}) - Release/Tag
         run: python3 -m pip install https://github.com/ansible/ansible/archive/${{ inputs.ansible_version }}.tar.gz --disable-pip-version-check
@@ -53,6 +70,10 @@ jobs:
       - name: Install ansible-core (${{ inputs.ansible_version }}) - Branch
         run: python3 -m pip install ./ansible-core-source --disable-pip-version-check
         if: ${{ contains(inputs.ansible_version, 'devel') || contains(inputs.ansible_version, 'milestone') }}
+
+      - name: Show pip list after ansible-core install
+        run: |
+          python3 -m pip list | sort
 
       - name: Read collection metadata from galaxy.yml
         id: identify
@@ -89,6 +110,7 @@ jobs:
           LAB_NODES_JSON: ${{ inputs.lab_nodes }}
           ANSIBLE_VERSION_KEY: ${{ inputs.ansible_version }}
           RUNNER_TEMP: ${{ runner.temp }}
+          CLI_SSH_TYPE: ${{ inputs.cli_ssh_type }}
         run: |
           set -euo pipefail
           if ! command -v jq >/dev/null 2>&1; then
@@ -109,7 +131,7 @@ jobs:
           dest_host="54.190.208.146"
           out_file="$RUNNER_TEMP/inventory-$ANSIBLE_VERSION_KEY.ini"
           ansible localhost -c local -m template -a "src=tests/integration/labs/inventory.j2 dest=$out_file mode=0644" \
-            -e "host_label=$ANSIBLE_VERSION_KEY ansible_host=$dest_host ansible_ssh_port=$ssh_port ansible_http_port=$http_port ansible_netconf_port=$netconf_port"
+            -e "host_label=$ANSIBLE_VERSION_KEY ansible_host=$dest_host ansible_ssh_port=$ssh_port ansible_http_port=$http_port ansible_netconf_port=$netconf_port ansible_network_cli_ssh_type=$CLI_SSH_TYPE"
           echo "inventory_path=$out_file" >> "$GITHUB_OUTPUT"
 
       # - name: Debug inventory

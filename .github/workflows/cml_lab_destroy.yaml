@@ -7,7 +7,7 @@ on:
         description: Optional lab title override; if empty uses PR title
         required: false
         type: string
-        default: ''
+        default: ""
     secrets:
       virl_host:
         required: true
@@ -20,7 +20,7 @@ jobs:
   destroy_lab:
     runs-on: ubuntu-latest
     env:
-      PY_COLORS: '1'
+      PY_COLORS: "1"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -45,7 +45,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
-          python-version: '3.11'
+          python-version: "3.11"
 
       - name: Install ansible and CML collection
         shell: bash
@@ -103,7 +103,7 @@ jobs:
           CML_USERNAME: ${{ secrets.virl_username || 'admin' }}
           CML_PASSWORD: ${{ secrets.virl_password }}
           CML_LAB: ${{ steps.lab.outputs.title }}
-          CML_VERIFY_CERT: 'false'
+          CML_VERIFY_CERT: "false"
         run: |
           set -euo pipefail
           echo "Destroying lab: $CML_LAB"

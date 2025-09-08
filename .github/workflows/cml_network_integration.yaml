@@ -20,25 +20,25 @@ on:
 
 jobs:
   integration:
-    name: '${{ inputs.cli_ssh_type }} & ansible-core ${{ inputs.ansible_version }}'
+    name: "${{ inputs.cli_ssh_type }} & ansible-core ${{ inputs.ansible_version }}"
     runs-on: ubuntu-latest
     if: ${{ !github.event.pull_request || contains(github.event.pull_request.labels.*.name, 'safe to test') }}
     env:
-      PY_COLORS: '1'
-      source_directory: './source'
-      ANSIBLE_COLLECTIONS_PATHS: '/home/runner/collections:~/.ansible/collections:/usr/share/ansible/collections'
+      PY_COLORS: "1"
+      source_directory: "./source"
+      ANSIBLE_COLLECTIONS_PATHS: "/home/runner/collections:~/.ansible/collections:/usr/share/ansible/collections"
     steps:
       - name: Checkout the collection repository
         uses: ansible-network/github_actions/.github/actions/checkout_dependency@main
         with:
           path: ${{ env.source_directory }}
           ref: ${{ github.event.pull_request.head.sha }}
-          fetch-depth: '0'
+          fetch-depth: "0"
 
       - name: Set up Python 3.12
         uses: actions/setup-python@v6
         with:
-          python-version: '3.12'
+          python-version: "3.12"
 
       - name: Show pip list before installs
         run: |

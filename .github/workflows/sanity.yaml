@@ -17,7 +17,7 @@ jobs:
           ref: "${{github.event.pull_request.head.ref}}"
           repository: "${{ github.event.pull_request.head.repo.full_name }}"
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.11"
       - name: "Install tox-ansible, includes tox"
@@ -59,7 +59,7 @@ jobs:
           ref: "${{ github.event.pull_request.head.sha }}"
           fetch-depth: 0
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "${{ matrix.entry.python }}"
       - name: "Install tox-ansible, includes tox"

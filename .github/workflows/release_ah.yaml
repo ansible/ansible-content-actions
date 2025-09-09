@@ -14,6 +14,10 @@ name: Automation hub release
     secrets:
       ah_token:
         required: false
+      ah_client_id:
+        required: false
+      ah_client_secret:
+        required: false
 jobs:
   release:
     runs-on: ubuntu-latest
@@ -27,26 +31,40 @@ jobs:
       - name: Publish the collection on Automation Hub
         if: "${{ inputs.ah_publish }}"
         run: >
-          [[ "${{ secrets.ah_token != '' }}" ]] || { echo "ah_token is required
-          to publish on automation hub" ; exit 1; }
-
           TARBALL=$(ls -1 ./*.tar.gz)
+          if [[ -n "${{ secrets.ah_token }}" ]]; then
+            echo "Using ah_token for authentication"
 
-          cat << EOF > ansible.cfg
+            cat << EOF > ansible.cfg
 
-          [galaxy]
+            [galaxy]
+            server_list = rh_automation_hub
 
-          server_list = rh_automation_hub
+            [galaxy_server.rh_automation_hub]
+            url=https://cloud.redhat.com/api/automation-hub/
+            auth_url=https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token
+            token=${{ secrets.ah_token }}
 
-          [galaxy_server.rh_automation_hub]
+            EOF
 
-          url=https://cloud.redhat.com/api/automation-hub/
+          elif [[ -n "${{ secrets.client_id }}" && -n "${{ secrets.client_secret }}" ]]; then
+            echo "Using ah_client_id and ah_client_secret for authentication"
+            cat << EOF > ansible.cfg
+            [galaxy]
+            server_list = automation_hub
 
-          auth_url=https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token
+            [galaxy_server.automation_hub]
+            url=https://cloud.redhat.com/api/automation-hub/
+            auth_url=https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token
+            client_id=${{ secrets.ah_client_id }}
+            client_secret=${{ secrets.ah_client_secret }}
+            EOF
 
-          token=${{ secrets.ah_token }}
-
-          EOF
+          else
+            echo "Error: No valid Automation Hub credentials provided."
+            echo "Please provide either 'ah_token' OR both 'ah_client_id' and 'ah_client_secret'."
+            exit 1
+          fi
 
           ansible-galaxy collection publish "${TARBALL}"
 

@@ -28,6 +28,7 @@ on:
 jobs:
   create-topology:
     runs-on: ubuntu-latest
+    if: ${{ !github.event.pull_request || contains(github.event.pull_request.labels.*.name, 'safe to test') }}
     env:
       PY_COLORS: "1"
     outputs:

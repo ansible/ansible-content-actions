@@ -29,7 +29,7 @@ jobs:
       - name: Set up Ansible
         run: |
           python3 -m pip install --upgrade pip
-          python3 -m pip install "ansible-core>=2.15"
+          python3 -m pip install "ansible-core>=2.16"
 
       - name: Build the collection
         run: |
@@ -39,11 +39,15 @@ jobs:
         if: ${{ inputs.ah_publish }}
         env:
           AH_TOKEN: ${{ secrets.ah_token }}
+          AH_CLIENT_ID: ${{ secrets.ah_client_id }}
+          AH_CLIENT_SECRET: ${{ secrets.ah_client_secret }}
         run: |
+          # Priority decided over slack: use ah_token if available, skip if client credentials should be used instead
           if [[ -z "$AH_TOKEN" ]]; then
-            echo "Skipping: ah_token not provided"
+            echo "Skipping: ah_token not provided, will try client credentials"
             exit 0
           fi
+          echo "Using ah_token for authentication"
           TARBALL=$(ls -1 ./*.tar.gz | head -n1)
           cat > ansible.cfg <<EOF
           [galaxy]
@@ -61,13 +65,20 @@ jobs:
       - name: Publish with ah_client_id and ah_client_secret
         if: ${{ inputs.ah_publish }}
         env:
+          AH_TOKEN: ${{ secrets.ah_token }}
           AH_CLIENT_ID: ${{ secrets.ah_client_id }}
           AH_CLIENT_SECRET: ${{ secrets.ah_client_secret }}
         run: |
+          # Only run if ah_token is not provided and client credentials are available
+          if [[ -n "$AH_TOKEN" ]]; then
+            echo "Skipping: ah_token is provided, the previous step will be enforced."
+            exit 0
+          fi
           if [[ -z "$AH_CLIENT_ID" || -z "$AH_CLIENT_SECRET" ]]; then
             echo "Skipping: ah_client_id or ah_client_secret not provided"
             exit 0
           fi
+          echo "Using ah_client_id and ah_client_secret for authentication"
           TARBALL=$(ls -1 ./*.tar.gz | head -n1)
           cat > ansible.cfg <<EOF
           [galaxy]

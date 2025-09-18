@@ -22,50 +22,89 @@ jobs:
   release:
     runs-on: ubuntu-latest
     name: Automation Hub release
-    environment: "${{ inputs.environment }}"
+    environment: ${{ inputs.environment }}
     steps:
+      - name: Fail if no Automation Hub credentials
+        if: ${{ inputs.ah_publish }}
+        env:
+          AH_TOKEN: ${{ secrets.ah_token }}
+          AH_CLIENT_ID: ${{ secrets.ah_client_id }}
+          AH_CLIENT_SECRET: ${{ secrets.ah_client_secret }}
+        run: |
+          if [[ -n "$AH_TOKEN" ]] || [[ -n "$AH_CLIENT_ID" && -n "$AH_CLIENT_SECRET" ]]; then
+            echo "Valid credentials found, skipping failure step"
+            exit 0
+          fi
+          echo "Error: No valid Automation Hub credentials provided." 1>&2
+          echo "Provide 'ah_token' OR both 'ah_client_id' and 'ah_client_secret'." 1>&2
+          exit 1
+
       - uses: actions/checkout@v4
+
+      - name: Set up Ansible
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install "ansible-core>=2.16"
+
       - name: Build the collection
         run: |
           ansible-galaxy collection build -v --force
-      - name: Publish the collection on Automation Hub
-        if: "${{ inputs.ah_publish }}"
-        run: >
-          TARBALL=$(ls -1 ./*.tar.gz)
-          if [[ -n "${{ secrets.ah_token }}" ]]; then
-            echo "Using ah_token for authentication"
 
-            cat << EOF > ansible.cfg
-
-            [galaxy]
-            server_list = rh_automation_hub
-
-            [galaxy_server.rh_automation_hub]
-            url=https://cloud.redhat.com/api/automation-hub/
-            auth_url=https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token
-            token=${{ secrets.ah_token }}
-
-            EOF
-
-          elif [[ -n "${{ secrets.client_id }}" && -n "${{ secrets.client_secret }}" ]]; then
-            echo "Using ah_client_id and ah_client_secret for authentication"
-            cat << EOF > ansible.cfg
-            [galaxy]
-            server_list = automation_hub
-
-            [galaxy_server.automation_hub]
-            url=https://cloud.redhat.com/api/automation-hub/
-            auth_url=https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token
-            client_id=${{ secrets.ah_client_id }}
-            client_secret=${{ secrets.ah_client_secret }}
-            EOF
-
-          else
-            echo "Error: No valid Automation Hub credentials provided."
-            echo "Please provide either 'ah_token' OR both 'ah_client_id' and 'ah_client_secret'."
-            exit 1
+      - name: Publish with ah_token
+        if: ${{ inputs.ah_publish }}
+        env:
+          AH_TOKEN: ${{ secrets.ah_token }}
+          AH_CLIENT_ID: ${{ secrets.ah_client_id }}
+          AH_CLIENT_SECRET: ${{ secrets.ah_client_secret }}
+        run: |
+          # Priority decided over slack: use ah_token if available, skip if client credentials should be used instead
+          if [[ -z "$AH_TOKEN" ]]; then
+            echo "Skipping: ah_token not provided, will try client credentials"
+            exit 0
           fi
+          echo "Using ah_token for authentication"
+          TARBALL=$(ls -1 ./*.tar.gz | head -n1)
+          cat > ansible.cfg <<EOF
+          [galaxy]
+          server_list = rh_automation_hub
+
+          [galaxy_server.rh_automation_hub]
+          url=https://cloud.redhat.com/api/automation-hub/
+          auth_url=https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token
+          token=$AH_TOKEN
+          EOF
 
           ansible-galaxy collection publish "${TARBALL}"
+          rm -f ansible.cfg
 
-          rm ansible.cfg
+      - name: Publish with ah_client_id and ah_client_secret
+        if: ${{ inputs.ah_publish }}
+        env:
+          AH_TOKEN: ${{ secrets.ah_token }}
+          AH_CLIENT_ID: ${{ secrets.ah_client_id }}
+          AH_CLIENT_SECRET: ${{ secrets.ah_client_secret }}
+        run: |
+          # Only run if ah_token is not provided and client credentials are available
+          if [[ -n "$AH_TOKEN" ]]; then
+            echo "Skipping: ah_token is provided, the previous step will be enforced."
+            exit 0
+          fi
+          if [[ -z "$AH_CLIENT_ID" || -z "$AH_CLIENT_SECRET" ]]; then
+            echo "Skipping: ah_client_id or ah_client_secret not provided"
+            exit 0
+          fi
+          echo "Using ah_client_id and ah_client_secret for authentication"
+          TARBALL=$(ls -1 ./*.tar.gz | head -n1)
+          cat > ansible.cfg <<EOF
+          [galaxy]
+          server_list = automation_hub
+
+          [galaxy_server.automation_hub]
+          url=https://cloud.redhat.com/api/automation-hub/
+          auth_url=https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token
+          client_id=$AH_CLIENT_ID
+          client_secret=$AH_CLIENT_SECRET
+          EOF
+
+          ansible-galaxy collection publish "${TARBALL}"
+          rm -f ansible.cfg

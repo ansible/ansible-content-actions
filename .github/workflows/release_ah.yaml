@@ -24,6 +24,21 @@ jobs:
     name: Automation Hub release
     environment: ${{ inputs.environment }}
     steps:
+      - name: Fail if no Automation Hub credentials
+        if: ${{ inputs.ah_publish }}
+        env:
+          AH_TOKEN: ${{ secrets.ah_token }}
+          AH_CLIENT_ID: ${{ secrets.ah_client_id }}
+          AH_CLIENT_SECRET: ${{ secrets.ah_client_secret }}
+        run: |
+          if [[ -n "$AH_TOKEN" ]] || [[ -n "$AH_CLIENT_ID" && -n "$AH_CLIENT_SECRET" ]]; then
+            echo "Valid credentials found, skipping failure step"
+            exit 0
+          fi
+          echo "Error: No valid Automation Hub credentials provided." 1>&2
+          echo "Provide 'ah_token' OR both 'ah_client_id' and 'ah_client_secret'." 1>&2
+          exit 1
+
       - uses: actions/checkout@v4
 
       - name: Set up Ansible
@@ -93,18 +108,3 @@ jobs:
 
           ansible-galaxy collection publish "${TARBALL}"
           rm -f ansible.cfg
-
-      - name: Fail if no Automation Hub credentials
-        if: ${{ inputs.ah_publish }}
-        env:
-          AH_TOKEN: ${{ secrets.ah_token }}
-          AH_CLIENT_ID: ${{ secrets.ah_client_id }}
-          AH_CLIENT_SECRET: ${{ secrets.ah_client_secret }}
-        run: |
-          if [[ -n "$AH_TOKEN" ]] || [[ -n "$AH_CLIENT_ID" && -n "$AH_CLIENT_SECRET" ]]; then
-            echo "Valid credentials found, skipping failure step"
-            exit 0
-          fi
-          echo "Error: No valid Automation Hub credentials provided." 1>&2
-          echo "Provide 'ah_token' OR both 'ah_client_id' and 'ah_client_secret'." 1>&2
-          exit 1

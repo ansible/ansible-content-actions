@@ -22,21 +22,24 @@ jobs:
   release:
     runs-on: ubuntu-latest
     name: Automation Hub release
-    environment: "${{ inputs.environment }}"
+    environment: ${{ inputs.environment }}
     steps:
       - uses: actions/checkout@v4
+      - name: Set up Ansible
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install "ansible-core>=2.15"
       - name: Build the collection
         run: |
           ansible-galaxy collection build -v --force
       - name: Publish the collection on Automation Hub
-        if: "${{ inputs.ah_publish }}"
-        run: >
-          TARBALL=$(ls -1 ./*.tar.gz)
+        if: ${{ inputs.ah_publish }}
+        run: |
+          set -euo pipefail
+          TARBALL=$(ls -1 ./*.tar.gz | head -n1)
           if [[ -n "${{ secrets.ah_token }}" ]]; then
             echo "Using ah_token for authentication"
-
             cat << EOF > ansible.cfg
-
             [galaxy]
             server_list = rh_automation_hub
 
@@ -44,10 +47,9 @@ jobs:
             url=https://cloud.redhat.com/api/automation-hub/
             auth_url=https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token
             token=${{ secrets.ah_token }}
-
             EOF
 
-          elif [[ -n "${{ secrets.client_id }}" && -n "${{ secrets.client_secret }}" ]]; then
+          elif [[ -n "${{ secrets.ah_client_id }}" && -n "${{ secrets.ah_client_secret }}" ]]; then
             echo "Using ah_client_id and ah_client_secret for authentication"
             cat << EOF > ansible.cfg
             [galaxy]
@@ -67,5 +69,4 @@ jobs:
           fi
 
           ansible-galaxy collection publish "${TARBALL}"
-
-          rm ansible.cfg
+          rm -f ansible.cfg

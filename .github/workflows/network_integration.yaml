@@ -84,7 +84,7 @@ jobs:
         if: ${{ inputs.dry_run }}
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -96,7 +96,7 @@ jobs:
         if: ${{ !contains(matrix.ansible-version, 'devel') && !contains(matrix.ansible-version, 'milestone') }}
 
       - name: Checkout ansible-core (${{ matrix.ansible-version }}) - Branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           repository: ansible/ansible
           ref: ${{ matrix.ansible-version }}

@@ -23,7 +23,7 @@ jobs:
     name: Ansible Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Process inputs
         id: inputs
         shell: bash
@@ -35,11 +35,11 @@ jobs:
           fi
       - name: Set up Python
         if: inputs.setup_python == 'true'
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           cache: pip
           cache-dependency-path: ${{ steps.inputs.outputs.working_directory }}/.git/ansible-lint-requirements.txt
-          python-version: "3.11"
+          python-version: "3.13"
       - name: Install ansible-lint from pip
         shell: bash
         run: |

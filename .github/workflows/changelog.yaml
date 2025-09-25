@@ -9,7 +9,7 @@ jobs:
     if: "!contains(github.event.pull_request.labels.*.name, 'skip-changelog')"
     steps:
       - name: Checkout the collection repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: "${{ github.event.pull_request.head.sha }}"
           fetch-depth: "0"

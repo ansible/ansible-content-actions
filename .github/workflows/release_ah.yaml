@@ -39,7 +39,7 @@ jobs:
           echo "Provide 'ah_token' OR both 'ah_client_id' and 'ah_client_secret'." 1>&2
           exit 1
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Set up Ansible
         run: |

@@ -3,20 +3,12 @@ ci:
   # We rely on renovate to update it but there is no way to fully disable it
   # https://github.com/pre-commit-ci/issues/issues/83
   autoupdate_schedule: quarterly
-  skip:
-    - renovate-config-validator # container limits
 repos:
   # - repo: https://github.com/rhysd/actionlint
   #   rev: v1.7.1
   #   hooks:
   #     - id: actionlint
 
-  - repo: https://github.com/renovatebot/pre-commit-hooks
-    rev: 41.91.1
-    hooks:
-      - id: renovate-config-validator
-        alias: renovate
-        args: [--strict]
   - repo: https://github.com/rbubley/mirrors-prettier
     # keep it before yamllint
     rev: v3.6.2

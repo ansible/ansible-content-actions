@@ -16,11 +16,17 @@ on:
         required: false
         type: string
         default: libssh
+      python-version:
+        default: >-
+          3.12
+        description: Python version to provision in the VM
+        required: false
+        type: string
     secrets: {}
 
 jobs:
   integration:
-    name: "${{ inputs.cli_ssh_type }} & ansible-core ${{ inputs.ansible_version }}"
+    name: "${{ inputs.cli_ssh_type }} & ansible-core ${{ inputs.ansible_version }} @ py${{ inputs.python-version }}"
     runs-on: ubuntu-latest
     if: ${{ !github.event.pull_request || contains(github.event.pull_request.labels.*.name, 'safe to test') }}
     env:
@@ -35,10 +41,10 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: "0"
 
-      - name: Set up Python 3.12
+      - name: Set up Python ${{ inputs.python-version }}
         uses: actions/setup-python@v6
         with:
-          python-version: "3.12"
+          python-version: ${{ inputs.python-version }}
 
       - name: Show pip list before installs
         run: |

@@ -108,6 +108,10 @@ jobs:
           echo "$LAB_NODES"
           echo
 
+      - name: Debug libssh and pylibssh versions
+        shell: bash
+        run: python -c "from pylibsshext import __full_version__; print(__full_version__)"
+
       - name: Generate inventory from lab_nodes and template
         id: render_inventory
         shell: bash

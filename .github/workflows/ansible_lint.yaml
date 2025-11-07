@@ -18,6 +18,45 @@ name: Ansible lint
         required: false
         default: ""
         type: string
+      requirements_file:
+        description: |
+          Path to a requirements.yml file to install collections/roles before linting. If empty, no requirements will be installed.
+          
+          Galaxy Server Authentication:
+          Configure Galaxy servers using repository variables and secrets. This workflow automatically reads
+          ANSIBLE_GALAXY_SERVER_* variables and secrets from the calling repository.
+          
+          Setup in your repository Settings > Secrets and variables > Actions:
+          
+          Variables (non-sensitive - URLs, server lists):
+            ANSIBLE_GALAXY_SERVER_LIST=published,certified,validated,community
+            ANSIBLE_GALAXY_SERVER_PUBLISHED_URL=https://console.redhat.com/api/automation-hub/content/published/
+            ANSIBLE_GALAXY_SERVER_PUBLISHED_AUTH_URL=https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token
+            ANSIBLE_GALAXY_SERVER_CERTIFIED_URL=https://console.redhat.com/api/automation-hub/content/rh-certified/
+            ANSIBLE_GALAXY_SERVER_CERTIFIED_AUTH_URL=https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token
+            ANSIBLE_GALAXY_SERVER_VALIDATED_URL=https://console.redhat.com/api/automation-hub/content/validated/
+            ANSIBLE_GALAXY_SERVER_VALIDATED_AUTH_URL=https://sso.redhat.com/auth/realms/redhat-external/protocol/openid-connect/token
+            ANSIBLE_GALAXY_SERVER_COMMUNITY_URL=https://galaxy.ansible.com
+          
+          Secrets (sensitive tokens):
+            ANSIBLE_GALAXY_SERVER_PUBLISHED_TOKEN=<your-offline-token>
+            ANSIBLE_GALAXY_SERVER_CERTIFIED_TOKEN=<your-offline-token>
+            ANSIBLE_GALAXY_SERVER_VALIDATED_TOKEN=<your-offline-token>
+            ANSIBLE_GALAXY_SERVER_COMMUNITY_TOKEN=<optional-token-if-needed>
+          
+          Usage:
+            jobs:
+              lint:
+                uses: org/repo/.github/workflows/ansible_lint.yaml@main
+                with:
+                  requirements_file: requirements.yml
+          
+          Note: All variables/secrets are optional. Configure only what you need.
+          
+          See: https://developers.redhat.com/articles/2025/01/23/strategies-eliminating-ansible-hardcoded-credentials
+        required: false
+        default: ""
+        type: string
 jobs:
   build:
     name: Ansible Lint
@@ -45,6 +84,29 @@ jobs:
         run: |
           pip install ansible-lint
           ansible-lint --version
+      - name: Install requirements from requirements.yml
+        if: inputs.requirements_file != ''
+        shell: bash
+        working-directory: ${{ steps.inputs.outputs.working_directory }}
+        env:
+          ANSIBLE_GALAXY_SERVER_LIST: ${{ vars.ANSIBLE_GALAXY_SERVER_LIST }}
+          ANSIBLE_GALAXY_SERVER_PUBLISHED_URL: ${{ vars.ANSIBLE_GALAXY_SERVER_PUBLISHED_URL }}
+          ANSIBLE_GALAXY_SERVER_PUBLISHED_AUTH_URL: ${{ vars.ANSIBLE_GALAXY_SERVER_PUBLISHED_AUTH_URL }}
+          ANSIBLE_GALAXY_SERVER_PUBLISHED_TOKEN: ${{ secrets.ANSIBLE_GALAXY_SERVER_PUBLISHED_TOKEN }}
+          ANSIBLE_GALAXY_SERVER_CERTIFIED_URL: ${{ vars.ANSIBLE_GALAXY_SERVER_CERTIFIED_URL }}
+          ANSIBLE_GALAXY_SERVER_CERTIFIED_AUTH_URL: ${{ vars.ANSIBLE_GALAXY_SERVER_CERTIFIED_AUTH_URL }}
+          ANSIBLE_GALAXY_SERVER_CERTIFIED_TOKEN: ${{ secrets.ANSIBLE_GALAXY_SERVER_CERTIFIED_TOKEN }}
+          ANSIBLE_GALAXY_SERVER_VALIDATED_URL: ${{ vars.ANSIBLE_GALAXY_SERVER_VALIDATED_URL }}
+          ANSIBLE_GALAXY_SERVER_VALIDATED_AUTH_URL: ${{ vars.ANSIBLE_GALAXY_SERVER_VALIDATED_AUTH_URL }}
+          ANSIBLE_GALAXY_SERVER_VALIDATED_TOKEN: ${{ secrets.ANSIBLE_GALAXY_SERVER_VALIDATED_TOKEN }}
+          ANSIBLE_GALAXY_SERVER_COMMUNITY_URL: ${{ vars.ANSIBLE_GALAXY_SERVER_COMMUNITY_URL }}
+          ANSIBLE_GALAXY_SERVER_COMMUNITY_TOKEN: ${{ secrets.ANSIBLE_GALAXY_SERVER_COMMUNITY_TOKEN }}
+        run: |
+          echo "Installing collections/roles from ${{ inputs.requirements_file }}"
+          echo "Configured Galaxy servers:"
+          env | grep -i ANSIBLE_GALAXY || echo "No ANSIBLE_GALAXY environment variables found"
+          echo "Running ansible-galaxy install..."
+          ansible-galaxy install -r "${{ inputs.requirements_file }}" -vvv
       - name: Run ansible-lint
         shell: bash
         working-directory: ${{ steps.inputs.outputs.working_directory }}

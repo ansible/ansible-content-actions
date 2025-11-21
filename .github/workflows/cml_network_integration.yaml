@@ -26,7 +26,7 @@ on:
         description: Optional variable name to use instead of ansible_http_port
         required: false
         type: string
-        default: ""
+        default: "ansible_http_port"
     secrets: {}
 
 jobs:
@@ -147,9 +147,6 @@ jobs:
           out_file="$RUNNER_TEMP/inventory-$ANSIBLE_VERSION_KEY.ini"
 
           http_key="${{ inputs.http_var_name }}"
-          if [ -z "$http_key" ]; then
-            http_key="ansible_http_port"
-          fi
 
           ansible localhost -c local -m template -a "src=tests/integration/labs/inventory.j2 dest=$out_file mode=0644" \
             -e "host_label=$ANSIBLE_VERSION_KEY ansible_host=$dest_host ansible_ssh_port=$ssh_port $http_key=$http_port ansible_netconf_port=$netconf_port ansible_network_cli_ssh_type=$CLI_SSH_TYPE"

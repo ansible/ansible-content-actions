@@ -96,7 +96,7 @@ jobs:
         if: ${{ !contains(matrix.ansible-version, 'devel') && !contains(matrix.ansible-version, 'milestone') }}
 
       - name: Checkout ansible-core (${{ matrix.ansible-version }}) - Branch
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           repository: ansible/ansible
           ref: ${{ matrix.ansible-version }}

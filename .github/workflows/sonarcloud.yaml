@@ -1,3 +1,4 @@
+---
 name: SonarCloud Scan
 on:
   workflow_call:
@@ -99,5 +100,4 @@ jobs:
           args: >
             ${{ steps.sonar-args.outputs.ARGS }}
             -Dsonar.python.coverage.reportPaths=coverage.xml
-            -Dsonar.verbose=true
             ${{ inputs.sonar_args }}

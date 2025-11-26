@@ -1,0 +1,103 @@
+name: SonarCloud Scan
+on:
+  workflow_call:
+    inputs:
+      python_version:
+        description: "Python version to use for testing"
+        default: "3.12"
+        required: false
+        type: string
+      galaxy_dependencies:
+        description: "Multiline list of Ansible Galaxy dependencies to install (git URLs or names)"
+        required: false
+        type: string
+        default: ""
+      test_command:
+        description: "Command to run unit tests and generate coverage"
+        default: "pytest tests/unit -v --cov-report xml --cov=./"
+        required: false
+        type: string
+      sonar_args:
+        description: "Additional arguments to pass to the SonarScanner"
+        default: ""
+        required: false
+        type: string
+    secrets:
+      SONAR_TOKEN:
+        description: "SonarCloud API Token"
+        required: true
+
+jobs:
+  sonar:
+    name: SonarCloud Coverage
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          show-progress: false
+
+      - name: Set up Python ${{ inputs.python_version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ inputs.python_version }}
+
+      - name: Install Python + Testing Dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install ansible-core pytest pytest-cov pytest-ansible-units pytest-forked pytest-xdist lxml
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Install Ansible Collection Dependencies
+        if: ${{ inputs.galaxy_dependencies != '' }}
+        run: |
+          # Read the multiline input and install each dependency
+          while IFS= read -r line; do
+            if [[ -n "$line" ]]; then
+              echo "Installing: $line"
+              ansible-galaxy collection install "$line"
+            fi
+          done <<< "${{ inputs.galaxy_dependencies }}"
+
+      - name: Print Environment Info
+        run: |
+          ansible --version
+          python3 -m pip list
+
+      - name: Prepare Sonar Args
+        id: sonar-args
+        run: |
+          if [ "${{ github.event_name }}" == "pull_request_target" ]; then
+            # Build string for PRs to ensure we analyze the HEAD of the PR
+            ARGS="-Dsonar.scm.revision=${{ github.event.pull_request.head.sha }}"
+            ARGS="$ARGS -Dsonar.pullrequest.key=${{ github.event.pull_request.number }}"
+            ARGS="$ARGS -Dsonar.pullrequest.branch=${{ github.event.pull_request.head.ref }}"
+            ARGS="$ARGS -Dsonar.pullrequest.base=${{ github.event.pull_request.base.ref }}"
+            echo "ARGS=$ARGS" >> $GITHUB_OUTPUT
+          else
+            echo "ARGS=" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Checkout PR Branch Code
+        if: github.event_name == 'pull_request_target'
+        run: |
+          git fetch origin pull/${{ github.event.pull_request.number }}/head:pr
+          git checkout pr
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run Unit Tests with Coverage
+        run: ${{ inputs.test_command }}
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarqube-scan-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            ${{ steps.sonar-args.outputs.ARGS }}
+            -Dsonar.python.coverage.reportPaths=coverage.xml
+            -Dsonar.verbose=true
+            ${{ inputs.sonar_args }}

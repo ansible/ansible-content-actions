@@ -24,9 +24,9 @@ on:
         required: false
         type: string
     secrets:
-     SONAR_TOKEN:
-       description: "SonarCloud API Token"
-       required: true
+      SONAR_TOKEN:
+        description: "SonarCloud API Token"
+        required: true
 
 permissions:
   contents: read
@@ -75,7 +75,7 @@ jobs:
       - name: Prepare Sonar Args
         id: sonar-args
         run: |
-          if [ "${{ github.event_name }}" == "pull_request" ]; then
+          if [ "${{ github.event_name }}" == "pull_request_target" ]; then
             # Build string for PRs to ensure we analyze the HEAD of the PR
             ARGS="-Dsonar.scm.revision=${{ github.event.pull_request.head.sha }}"
             ARGS="$ARGS -Dsonar.pullrequest.key=${{ github.event.pull_request.number }}"
@@ -87,7 +87,7 @@ jobs:
           fi
 
       - name: Checkout PR Branch Code
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request_target'
         run: |
           git fetch origin pull/${{ github.event.pull_request.number }}/head:pr
           git checkout pr

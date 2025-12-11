@@ -24,7 +24,7 @@ on:
         required: false
         type: string
       sonar_scanner_java_opts:
-        description: "JVM options for the SonarScanner (e.g. -Xss2m)"
+        description: "Java Sonar Stack size"
         default: ""
         required: false
         type: string

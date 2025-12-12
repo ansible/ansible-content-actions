@@ -23,6 +23,11 @@ on:
         default: ""
         required: false
         type: string
+      sonar_scanner_java_opts:
+        description: "Java Sonar Stack size"
+        default: ""
+        required: false
+        type: string
     secrets:
       SONAR_TOKEN:
         description: "SonarCloud API Token"
@@ -103,6 +108,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_SCANNER_JAVA_OPTS: ${{ inputs.sonar_scanner_java_opts }}
         with:
           args: >
             ${{ steps.sonar-args.outputs.ARGS }}

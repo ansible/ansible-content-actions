@@ -152,7 +152,7 @@ jobs:
             -e cml_username="$CML_USERNAME" \
             -e cml_password="$CML_PASSWORD" \
             -e cml_lab="$CML_LAB" \
-            -e topology_path="${{ steps.topo.outputs.path }} -vvvv"
+            -e topology_path="${{ steps.topo.outputs.path }}" -vvvv
 
       - name: Do CML data extraction
         id: extract

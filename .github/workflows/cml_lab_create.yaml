@@ -33,6 +33,8 @@ jobs:
       PY_COLORS: "1"
     outputs:
       lab_nodes_json: ${{ steps.extract.outputs.lab_nodes_json }}
+    with:
+      environment: integration
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6

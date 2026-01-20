@@ -104,10 +104,6 @@ jobs:
                   topology: "{{ lookup('template', topology_path) }}"
                   wait: "yes"
 
-              - name: Sleep for 300 seconds and continue with play
-                ansible.builtin.wait_for:
-                  timeout: 180
-
               - name: Collect Facts
                 cisco.cml.cml_lab_facts:
                   host:  "{{ cml_host }}"
@@ -138,9 +134,9 @@ jobs:
       - name: Run playbook
         shell: bash
         env:
-          CML_HOST: ${{ secrets.virl_host }}
-          CML_USERNAME: ${{ secrets.virl_username || 'admin' }}
-          CML_PASSWORD: ${{ secrets.virl_password }}
+          CML_HOST: ${{ secrets.VIRL_HOST }}
+          CML_USERNAME: ${{ secrets.VIRL_USERNAME }}
+          CML_PASSWORD: ${{ secrets.VIRL_USERNAME }}
           CML_LAB: ${{ steps.lab.outputs.title }}
           CML_VERIFY_CERT: "false"
         run: |

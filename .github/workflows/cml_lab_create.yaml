@@ -15,11 +15,11 @@ on:
         default: ""
     secrets:
       virl_host:
-        required: true
+        required: false
       virl_username:
         required: false
       virl_password:
-        required: true
+        required: false
     outputs:
       lab_nodes_json:
         description: "JSON string of nodes with ansible_host"
@@ -94,6 +94,11 @@ jobs:
             hosts: localhost
             gather_facts: false
             tasks:
+              - name: Debug CML variables
+                ansible.builtin.debug:
+                  msg:
+                    - "CML Host: {{ cml_host }}"
+              
               - name: Create the lab
                 cisco.cml.cml_lab:
                   host: "{{ cml_host }}"

@@ -13,13 +13,6 @@ on:
         required: false
         type: string
         default: ""
-    secrets:
-      virl_host:
-        required: true
-      virl_username:
-        required: false
-      virl_password:
-        required: true
     outputs:
       lab_nodes_json:
         description: "JSON string of nodes with ansible_host"
@@ -82,7 +75,7 @@ jobs:
           python -m pip install virl2_client==2.7.1
           ansible-galaxy collection install git+https://github.com/KB-perByte/cml.git
 
-      - name: Show ansible version
+      - name: Show Ansible version
         run: ansible --version
 
       - name: Create playbook
@@ -97,7 +90,7 @@ jobs:
               - name: Create the lab
                 cisco.cml.cml_lab:
                   host: "{{ cml_host }}"
-                  user: "admin"
+                  user: "{{ cml_username }}"
                   password: "{{ cml_password }}"
                   lab: "{{ cml_lab }}"
                   state: started
@@ -107,7 +100,7 @@ jobs:
               - name: Collect Facts
                 cisco.cml.cml_lab_facts:
                   host:  "{{ cml_host }}"
-                  user: "admin"
+                  user: "{{ cml_username }}"
                   password: "{{ cml_password }}"
                   lab: "{{ cml_lab }}"
                 register: lab_results

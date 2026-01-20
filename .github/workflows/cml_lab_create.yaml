@@ -13,6 +13,13 @@ on:
         required: false
         type: string
         default: ""
+    secrets:
+      virl_host:
+        required: true
+      virl_username:
+        required: false
+      virl_password:
+        required: true
     outputs:
       lab_nodes_json:
         description: "JSON string of nodes with ansible_host"

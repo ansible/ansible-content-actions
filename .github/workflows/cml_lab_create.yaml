@@ -94,11 +94,6 @@ jobs:
             hosts: localhost
             gather_facts: false
             tasks:
-              - name: Debug CML variables
-                ansible.builtin.debug:
-                  msg:
-                    - "CML Host: {{ cml_host }}"
-
               - name: Create the lab
                 cisco.cml.cml_lab:
                   host: "{{ cml_host }}"
@@ -108,6 +103,10 @@ jobs:
                   state: started
                   topology: "{{ lookup('template', topology_path) }}"
                   wait: "yes"
+
+              - name: Sleep for 180 seconds and continue with play (needed)
+                ansible.builtin.wait_for:
+                  timeout: 180
 
               - name: Collect Facts
                 cisco.cml.cml_lab_facts:

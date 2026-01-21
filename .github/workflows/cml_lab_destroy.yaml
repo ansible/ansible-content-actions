@@ -68,7 +68,7 @@ jobs:
               - name: Stop the lab
                 cisco.cml.cml_lab:
                   host: "{{ cml_host }}"
-                  user: "admin"
+                  user: "{{ cml_username }}"
                   password: "{{ cml_password }}"
                   lab: "{{ cml_lab }}"
                   state: stopped
@@ -79,7 +79,7 @@ jobs:
               - name: Wipe the lab
                 cisco.cml.cml_lab:
                   host: "{{ cml_host }}"
-                  user: "admin"
+                  user: "{{ cml_username }}"
                   password: "{{ cml_password }}"
                   lab: "{{ cml_lab }}"
                   state: wiped
@@ -89,7 +89,7 @@ jobs:
               - name: Erase the lab
                 cisco.cml.cml_lab:
                   host: "{{ cml_host }}"
-                  user: "admin"
+                  user: "{{ cml_username }}"
                   password: "{{ cml_password }}"
                   lab: "{{ cml_lab }}"
                   state: absent
@@ -100,9 +100,9 @@ jobs:
       - name: Run destroy playbook
         shell: bash
         env:
-          CML_HOST: ${{ secrets.virl_host }}
-          CML_USERNAME: ${{ secrets.virl_username || 'admin' }}
-          CML_PASSWORD: ${{ secrets.virl_password }}
+          CML_HOST: ${{ secrets.VIRL_HOST }}
+          CML_USERNAME: ${{ secrets.VIRL_USERNAME }}
+          CML_PASSWORD: ${{ secrets.VIRL_PASSWORD }}
           CML_LAB: ${{ steps.lab.outputs.title }}
           CML_VERIFY_CERT: "false"
         run: |

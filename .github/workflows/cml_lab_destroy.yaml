@@ -22,6 +22,7 @@ jobs:
     if: ${{ !github.event.pull_request || contains(github.event.pull_request.labels.*.name, 'safe to test') }}
     env:
       PY_COLORS: "1"
+    environment: integration
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6

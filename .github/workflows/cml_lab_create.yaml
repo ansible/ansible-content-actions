@@ -98,7 +98,7 @@ jobs:
                 ansible.builtin.debug:
                   msg:
                     - "CML Host: {{ cml_host }}"
-              
+
               - name: Create the lab
                 cisco.cml.cml_lab:
                   host: "{{ cml_host }}"
@@ -141,7 +141,7 @@ jobs:
         env:
           CML_HOST: ${{ secrets.VIRL_HOST }}
           CML_USERNAME: ${{ secrets.VIRL_USERNAME }}
-          CML_PASSWORD: ${{ secrets.VIRL_USERNAME }}
+          CML_PASSWORD: ${{ secrets.VIRL_PASSWORD }}
           CML_LAB: ${{ steps.lab.outputs.title }}
           CML_VERIFY_CERT: "false"
         run: |

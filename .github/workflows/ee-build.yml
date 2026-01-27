@@ -163,9 +163,9 @@ jobs:
         id: push_to_ghcr
         uses: redhat-actions/push-to-registry@v2
         with:
-          image: ${{ env.EE }}
+          image: ${{ github.repository_owner }}/${{ env.EE }}
           tags: ${{ env.IMAGE_TAG }}
-          registry: ${{ env.IMAGE_REGISTRY }}/${{ github.repository_owner }}
+          registry: ${{ env.IMAGE_REGISTRY }}
 
       - name: Set push success flag
         if: success()

@@ -28,7 +28,7 @@ jobs:
   upload:
     runs-on: ubuntu-latest
     steps:
-      - name: Generate Synthetic JUnit XML
+      - name: Generate JUnit XML
         run: |
           cat <<EOF > generate_xml.py
           import json, os, sys

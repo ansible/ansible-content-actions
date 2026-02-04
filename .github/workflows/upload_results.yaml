@@ -1,0 +1,90 @@
+name: "Upload Test Results"
+
+on:
+  workflow_call:
+    inputs:
+      job_context:
+        description: "JSON string of the 'needs' context from the caller"
+        required: true
+        type: string
+      component_name:
+        description: "Name of the component (e.g. cisco.ios)"
+        required: true
+        type: string
+      UPLOAD_USER:
+        description: "API Username (from vars)"
+        required: true
+        type: string
+      UPLOAD_URL:
+        description: "API Endpoint URL (from vars)"
+        required: true
+        type: string
+    secrets:
+      UPLOAD_PASSWORD:
+        description: "API Password (from secrets)"
+        required: true
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate Synthetic JUnit XML
+        run: |
+          cat <<EOF > generate_xml.py
+          import json, os, sys
+
+          try:
+              needs_context = json.loads('${{ inputs.job_context }}')
+          except Exception as e:
+              print(f"JSON Error: {e}")
+              sys.exit(1)
+
+          # Calculate counts first
+          failures = 0
+          skipped = 0
+          for job_data in needs_context.values():
+              res = job_data.get('result', 'unknown')
+              if res == 'failure':
+                  failures += 1
+              elif res == 'skipped':
+                  skipped += 1
+          
+          # Write XML
+          with open('junit.xml', 'w') as f:
+              f.write('<?xml version="1.0" encoding="UTF-8"?>\n')
+              f.write(f'<testsuite name="${{ inputs.component_name }}-ci" tests="{len(needs_context)}" failures="{failures}" skipped="{skipped}">\n')
+              
+              for job_name, job_data in needs_context.items():
+                  result = job_data.get('result', 'unknown')
+                  if result == 'failure':
+                      f.write(f'  <testcase name="{job_name}" classname="github-actions"><failure message="Job failed"/></testcase>\n')
+                  elif result == 'skipped':
+                      f.write(f'  <testcase name="{job_name}" classname="github-actions"><skipped/></testcase>\n')
+                  else:
+                      f.write(f'  <testcase name="{job_name}" classname="github-actions"/>\n')
+              
+              f.write('</testsuite>\n')
+          EOF
+          python3 generate_xml.py
+
+      - name: Upload Results to PDE
+        if: >-
+          github.event_name == 'push' ||
+          github.event_name == 'schedule' ||
+          github.event_name == 'workflow_dispatch' ||
+          (github.event_name == 'pull_request_target' && 
+             (github.event.pull_request.head.repo.fork == false || 
+              contains(github.event.pull_request.labels.*.name, 'safe to test')))
+        run: |
+          if [ -f junit.xml ]; then
+            curl -v --fail-with-body \
+              --user "${{ inputs.UPLOAD_USER }}:${{ secrets.UPLOAD_PASSWORD }}" \
+              --form "xunit_xml=@junit.xml" \
+              --form "component_name=${{ inputs.component_name }}" \
+              --form "git_commit_sha=${{ github.sha }}" \
+              --form "git_repository_url=https://github.com/${{ github.repository }}" \
+              "${{ inputs.UPLOAD_URL }}/api/results/upload/"
+          else
+            echo "junit.xml missing!"
+            exit 1
+          fi

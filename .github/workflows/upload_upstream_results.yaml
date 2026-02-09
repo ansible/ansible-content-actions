@@ -12,23 +12,23 @@ on:
         required: true
         type: string
       UPLOAD_USER:
-        description: "API Username (from vars)"
+        description: "API Username"
         required: true
         type: string
       UPLOAD_URL:
-        description: "API Endpoint URL (from vars)"
+        description: "API Endpoint URL"
         required: true
         type: string
     secrets:
       UPLOAD_PASSWORD:
-        description: "API Password (from secrets)"
+        description: "API Password"
         required: true
 
 jobs:
   upload:
     runs-on: ubuntu-latest
     steps:
-      - name: Generate JUnit XML
+      - name: Generate Robust JUnit XML
         env:
           NEEDS_JSON: ${{ inputs.job_context }}
         run: |
@@ -36,14 +36,12 @@ jobs:
           import json, os, sys
 
           try:
-              # Read the JSON safely from the environment variable
               raw_json = os.environ.get('NEEDS_JSON', '{}')
               needs_context = json.loads(raw_json)
           except Exception as e:
               print(f"JSON Error: {e}")
               sys.exit(1)
 
-          # Calculate counts first
           failures = 0
           skipped = 0
           for job_data in needs_context.values():
@@ -53,19 +51,19 @@ jobs:
               elif res == 'skipped':
                   skipped += 1
 
-          # Write XML
           with open('junit.xml', 'w') as f:
               f.write('<?xml version="1.0" encoding="UTF-8"?>\n')
-              f.write(f'<testsuite name="${{ inputs.component_name }}-ci" tests="{len(needs_context)}" failures="{failures}" skipped="{skipped}">\n')
+              f.write(f'<testsuite name="${{ inputs.component_name }}-ci" tests="{len(needs_context)}" failures="{failures}" errors="0" skipped="{skipped}" time="0">\n')
 
               for job_name, job_data in needs_context.items():
                   result = job_data.get('result', 'unknown')
+                  
                   if result == 'failure':
-                      f.write(f'  <testcase name="{job_name}" classname="github-actions"><failure message="Job failed"/></testcase>\n')
+                      f.write(f'  <testcase name="{job_name}" classname="github-actions" time="0"><failure message="Job failed"/></testcase>\n')
                   elif result == 'skipped':
-                      f.write(f'  <testcase name="{job_name}" classname="github-actions"><skipped/></testcase>\n')
+                      f.write(f'  <testcase name="{job_name}" classname="github-actions" time="0"><skipped/></testcase>\n')
                   else:
-                      f.write(f'  <testcase name="{job_name}" classname="github-actions"/>\n')
+                      f.write(f'  <testcase name="{job_name}" classname="github-actions" time="0"/>\n')
 
               f.write('</testsuite>\n')
           EOF

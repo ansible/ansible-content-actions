@@ -34,6 +34,7 @@ jobs:
         run: |
           cat <<EOF > generate_xml.py
           import json, os, sys
+          from datetime import datetime
 
           try:
               raw_json = os.environ.get('NEEDS_JSON', '{}')
@@ -51,21 +52,28 @@ jobs:
               elif res == 'skipped':
                   skipped += 1
 
+          total_tests = len(needs_context)
+          timestamp = datetime.now().isoformat()
+
           with open('junit.xml', 'w') as f:
               f.write('<?xml version="1.0" encoding="UTF-8"?>\n')
-              f.write(f'<testsuite name="${{ inputs.component_name }}-ci" tests="{len(needs_context)}" failures="{failures}" errors="0" skipped="{skipped}" time="0">\n')
+              
+              f.write(f'<testsuites name="{inputs.component_name}-ci" tests="{total_tests}" failures="{failures}" errors="0" time="0">\n')
+              
+              f.write(f'  <testsuite name="{inputs.component_name}-ci" tests="{total_tests}" failures="{failures}" errors="0" skipped="{skipped}" time="0" timestamp="{timestamp}">\n')
 
               for job_name, job_data in needs_context.items():
                   result = job_data.get('result', 'unknown')
                   
                   if result == 'failure':
-                      f.write(f'  <testcase name="{job_name}" classname="github-actions" time="0"><failure message="Job failed"/></testcase>\n')
+                      f.write(f'    <testcase name="{job_name}" classname="github-actions" time="0"><failure message="Job failed"/></testcase>\n')
                   elif result == 'skipped':
-                      f.write(f'  <testcase name="{job_name}" classname="github-actions" time="0"><skipped/></testcase>\n')
+                      f.write(f'    <testcase name="{job_name}" classname="github-actions" time="0"><skipped/></testcase>\n')
                   else:
-                      f.write(f'  <testcase name="{job_name}" classname="github-actions" time="0"/>\n')
+                      f.write(f'    <testcase name="{job_name}" classname="github-actions" time="0"/>\n')
 
-              f.write('</testsuite>\n')
+              f.write('  </testsuite>\n')
+              f.write('</testsuites>\n')
           EOF
           python3 generate_xml.py
 

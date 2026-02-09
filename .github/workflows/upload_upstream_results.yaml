@@ -48,12 +48,12 @@ jobs:
                   failures += 1
               elif res == 'skipped':
                   skipped += 1
-          
+
           # Write XML
           with open('junit.xml', 'w') as f:
               f.write('<?xml version="1.0" encoding="UTF-8"?>\n')
               f.write(f'<testsuite name="${{ inputs.component_name }}-ci" tests="{len(needs_context)}" failures="{failures}" skipped="{skipped}">\n')
-              
+
               for job_name, job_data in needs_context.items():
                   result = job_data.get('result', 'unknown')
                   if result == 'failure':
@@ -62,7 +62,7 @@ jobs:
                       f.write(f'  <testcase name="{job_name}" classname="github-actions"><skipped/></testcase>\n')
                   else:
                       f.write(f'  <testcase name="{job_name}" classname="github-actions"/>\n')
-              
+
               f.write('</testsuite>\n')
           EOF
           python3 generate_xml.py
@@ -73,8 +73,8 @@ jobs:
           github.event_name == 'schedule' ||
           github.event_name == 'workflow_dispatch' ||
           (github.event_name == 'pull_request_target' && 
-             (github.event.pull_request.head.repo.fork == false || 
-              contains(github.event.pull_request.labels.*.name, 'safe to test')))
+          (github.event.pull_request.head.repo.fork == false || 
+          contains(github.event.pull_request.labels.*.name, 'safe to test')))
         run: |
           if [ -f junit.xml ]; then
             curl -v --fail-with-body \

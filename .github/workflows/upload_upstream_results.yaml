@@ -29,12 +29,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Generate JUnit XML
+        env:
+          NEEDS_JSON: ${{ inputs.job_context }}
         run: |
           cat <<EOF > generate_xml.py
           import json, os, sys
 
           try:
-              needs_context = json.loads('${{ inputs.job_context }}')
+              # Read the JSON safely from the environment variable
+              raw_json = os.environ.get('NEEDS_JSON', '{}')
+              needs_context = json.loads(raw_json)
           except Exception as e:
               print(f"JSON Error: {e}")
               sys.exit(1)

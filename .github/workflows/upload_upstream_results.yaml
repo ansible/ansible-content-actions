@@ -74,13 +74,7 @@ jobs:
           python3 generate_xml.py
 
       - name: Upload Results to PDE
-        if: >-
-          github.event_name == 'push' ||
-          github.event_name == 'schedule' ||
-          github.event_name == 'workflow_dispatch' ||
-          (github.event_name == 'pull_request_target' &&
-          (github.event.pull_request.head.repo.fork == false ||
-          contains(github.event.pull_request.labels.*.name, 'safe to test')))
+        if: github.event_name == 'schedule'
         run: |
           if [ -f junit.xml ]; then
             curl -v --fail-with-body \

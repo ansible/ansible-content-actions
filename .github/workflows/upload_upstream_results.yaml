@@ -74,7 +74,6 @@ jobs:
           python3 generate_xml.py
 
       - name: Upload Results to PDE
-        if: github.event_name == 'schedule'
         run: |
           if [ -f junit.xml ]; then
             curl -v --fail-with-body \

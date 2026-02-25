@@ -7,19 +7,22 @@ name: Ansible Unit
         required: false
         type: string
         default: ""
+      extra_matrix_entries:
+        required: false
+        type: string
 jobs:
   tox-matrix:
     name: Matrix Unit
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: "${{github.event.pull_request.head.ref}}"
           repository: "${{ github.event.pull_request.head.repo.full_name }}"
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
-          python-version: "3.11"
+          python-version: "3.14"
       - name: "Check for tox-ansible.ini file, else add default"
         uses: ansible/ansible-content-actions/.github/actions/add_tox_ansible@main
       - name: "Install tox-ansible, includes tox"
@@ -29,8 +32,22 @@ jobs:
         run: >
           python -m tox --ansible --gh-matrix --matrix-scope unit --conf
           tox-ansible.ini
+      - name: Merge matrix with extra entries
+        id: merge-matrix
+        run: |
+          echo "Generated matrix: ${{ steps.generate-matrix.outputs.envlist }}"
+          echo "Extra matrix: ${{ inputs.extra_matrix_entries }}"
+
+          merged=$(
+            jq -c -n \
+              --argjson a '${{ steps.generate-matrix.outputs.envlist }}' \
+              --argjson b '${{ inputs.extra_matrix_entries || '[]' }}' \
+              '$a + $b'
+          )
+          echo "Merged matrix: $merged"
+          echo "envlist=$merged" >> "$GITHUB_OUTPUT"
     outputs:
-      envlist: "${{ steps.generate-matrix.outputs.envlist }}"
+      envlist: "${{ steps.merge-matrix.outputs.envlist }}"
   test:
     needs: tox-matrix
     strategy:
@@ -40,12 +57,12 @@ jobs:
     name: "${{ matrix.entry.name }}"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: "${{ github.event.pull_request.head.sha }}"
           fetch-depth: 0
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "${{ matrix.entry.python }}"
       - name: "Install tox-ansible, includes tox"

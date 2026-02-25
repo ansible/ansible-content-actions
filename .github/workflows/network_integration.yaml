@@ -54,16 +54,18 @@ jobs:
       matrix:
         ansible-version:
           - stable-2.18
-          # - stable-2.16
+          - stable-2.19
+          - stable-2.16
           # - stable-2.15
-          # - milestone
-          # - devel
+          - milestone
+          - devel
         python-version:
-          - "3.11"
+          - "3.12" # this should always be a common denominator for all the ansible versions
+          # https://github.com/ansible/tox-ansible/blob/main/src/tox_ansible/plugin.py#L45
         dependency-source:
           - github
 
-    name: "py${{ matrix.python-version }} / ${{ matrix.ansible-version }} / ${{ matrix.dependency-source }}"
+    name: "Integration Tests - Python ${{ matrix.python-version }} / Ansible ${{ matrix.ansible-version }} / ${{ matrix.dependency-source }}"
     steps:
       - name: Checkout the collection repository
         uses: ansible-network/github_actions/.github/actions/checkout_dependency@main
@@ -82,18 +84,118 @@ jobs:
         if: ${{ inputs.dry_run }}
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
 
       - name: Install wheel now for faster builds
         run: python3 -m pip install wheel --upgrade
 
-      - name: Install ansible-core (${{ matrix.ansible-version }})
+      - name: Install ansible-core (${{ matrix.ansible-version }}) - Release/Tag
         run: python3 -m pip install https://github.com/ansible/ansible/archive/${{ matrix.ansible-version }}.tar.gz --disable-pip-version-check
+        if: ${{ !contains(matrix.ansible-version, 'devel') && !contains(matrix.ansible-version, 'milestone') }}
+
+      - name: Checkout ansible-core (${{ matrix.ansible-version }}) - Branch
+        uses: actions/checkout@v6
+        with:
+          repository: ansible/ansible
+          ref: ${{ matrix.ansible-version }}
+          path: ansible-core-source
+        if: ${{ contains(matrix.ansible-version, 'devel') || contains(matrix.ansible-version, 'milestone') }}
+
+      - name: Install ansible-core (${{ matrix.ansible-version }}) - Branch
+        run: python3 -m pip install ./ansible-core-source --disable-pip-version-check
+        if: ${{ contains(matrix.ansible-version, 'devel') || contains(matrix.ansible-version, 'milestone') }}
+
+      - name: Parse PR body for dependency information
+        id: parse_dependencies
+        run: |
+          echo "netcommon_pr=" >> $GITHUB_OUTPUT
+          echo "utils_pr=" >> $GITHUB_OUTPUT
+          echo "netcommon_fallback=" >> $GITHUB_OUTPUT
+          echo "utils_fallback=" >> $GITHUB_OUTPUT
+
+          PR_BODY=$(python3 -c "import json, os; p=os.environ.get('GITHUB_EVENT_PATH'); d=json.load(open(p,'r',encoding='utf-8')) if p else {}; b=(d.get('pull_request') or {}).get('body') or ''; print(b.replace('\r',''))")
+
+          if [[ -n "$PR_BODY" ]]; then
+            # Only consider links on lines that declare dependency, e.g. "Depends on" or "Depends-on"
+            DEP_LINES=$(printf '%s\n' "$PR_BODY" | grep -iE 'depends[[:space:]-]*on' || true)
+            if [[ -z "$DEP_LINES" ]]; then
+              echo "netcommon_fallback=true" >> $GITHUB_OUTPUT
+              echo "utils_fallback=true" >> $GITHUB_OUTPUT
+              exit 0
+            fi
+
+            NET_URL=$(printf '%s\n' "$DEP_LINES" | grep -Eo 'https://github.com/ansible-collections/ansible\.netcommon/pull/[0-9]+' | head -1 || true)
+            if [[ -n "$NET_URL" ]]; then
+              NETCOMMON_PR=$(sed -E 's#.*/pull/([0-9]+).*#\1#' <<<"$NET_URL")
+              echo "netcommon_pr=$NETCOMMON_PR" >> $GITHUB_OUTPUT
+            else
+              echo "netcommon_fallback=true" >> $GITHUB_OUTPUT
+            fi
+
+            UTL_URL=$(printf '%s\n' "$DEP_LINES" | grep -Eo 'https://github.com/ansible-collections/ansible\.utils/pull/[0-9]+' | head -1 || true)
+            if [[ -n "$UTL_URL" ]]; then
+              UTILS_PR=$(sed -E 's#.*/pull/([0-9]+).*#\1#' <<<"$UTL_URL")
+              echo "utils_pr=$UTILS_PR" >> $GITHUB_OUTPUT
+            else
+              echo "utils_fallback=true" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "netcommon_fallback=true" >> $GITHUB_OUTPUT
+            echo "utils_fallback=true" >> $GITHUB_OUTPUT
+          fi
+        if: ${{ !inputs.dry_run }}
+
+      - name: Checkout ansible.netcommon dependency PR
+        uses: ansible-network/github_actions/.github/actions/checkout_dependency@main
+        with:
+          repository: ansible-collections/ansible.netcommon
+          ref: refs/pull/${{ steps.parse_dependencies.outputs.netcommon_pr }}/head
+          path: ${{ env.dependency_directory }}/ansible_collections/ansible/netcommon
+          fetch-depth: "0"
+        if: ${{ !inputs.dry_run && steps.parse_dependencies.outputs.netcommon_pr != '' }}
+
+      - name: Checkout ansible.utils dependency PR
+        uses: ansible-network/github_actions/.github/actions/checkout_dependency@main
+        with:
+          repository: ansible-collections/ansible.utils
+          ref: refs/pull/${{ steps.parse_dependencies.outputs.utils_pr }}/head
+          path: ${{ env.dependency_directory }}/ansible_collections/ansible/utils
+          fetch-depth: "0"
+        if: ${{ !inputs.dry_run && steps.parse_dependencies.outputs.utils_pr != '' }}
 
       - name: Pre install collections dependencies first so the collection install does not
-        run: ansible-galaxy collection install --pre ${{ inputs.collection_pre_install }} -p /home/runner/collections
+        run: |
+          sed -i 's/\r$//' "$0"
+          INSTALL_CMD="ansible-galaxy collection install --pre"
+          COLLECTIONS_TO_INSTALL=""
+          INPUT_SPECS="${{ inputs.collection_pre_install }}"
+
+          for spec in $INPUT_SPECS; do
+            if [[ "${{ steps.parse_dependencies.outputs.netcommon_fallback }}" == "true" ]] && [[ "$spec" =~ (ansible\.netcommon|ansible-collections/ansible\.netcommon) ]]; then
+              COLLECTIONS_TO_INSTALL="$COLLECTIONS_TO_INSTALL $spec"
+              continue
+            fi
+            if [[ "${{ steps.parse_dependencies.outputs.utils_fallback }}" == "true" ]] && [[ "$spec" =~ (ansible\.utils|ansible-collections/ansible\.utils) ]]; then
+              COLLECTIONS_TO_INSTALL="$COLLECTIONS_TO_INSTALL $spec"
+              continue
+            fi
+          done
+
+          for spec in $INPUT_SPECS; do
+            if [[ "$spec" =~ (ansible\.netcommon|ansible-collections/ansible\.netcommon|ansible\.utils|ansible-collections/ansible\.utils) ]]; then
+              continue
+            fi
+            COLLECTIONS_TO_INSTALL="$COLLECTIONS_TO_INSTALL $spec"
+          done
+
+          if [[ -n "$COLLECTIONS_TO_INSTALL" ]]; then
+            echo "Running: $INSTALL_CMD $COLLECTIONS_TO_INSTALL -p /home/runner/collections"
+            $INSTALL_CMD $COLLECTIONS_TO_INSTALL -p /home/runner/collections
+          else
+            echo "No collections to pre-install"
+          fi
         if: inputs.collection_pre_install != ''
 
       - name: Read collection metadata from galaxy.yml
@@ -101,6 +203,24 @@ jobs:
         uses: ansible-network/github_actions/.github/actions/identify_collection@main
         with:
           source_path: ${{ env.source_directory }}
+
+      - name: Build and install dependency collections from PRs
+        run: |
+          sed -i 's/\r$//' "$0"
+          if [[ -d "${{ env.dependency_directory }}/ansible_collections/ansible/netcommon" ]]; then
+            echo "Installing ansible.netcommon from PR dependency"
+            cd "${{ env.dependency_directory }}/ansible_collections/ansible/netcommon"
+            ansible-galaxy collection build . --output-path /tmp/
+            ansible-galaxy collection install /tmp/ansible-netcommon-*.tar.gz -p /home/runner/collections --force
+          fi
+
+          if [[ -d "${{ env.dependency_directory }}/ansible_collections/ansible/utils" ]]; then
+            echo "Installing ansible.utils from PR dependency"
+            cd "${{ env.dependency_directory }}/ansible_collections/ansible/utils"
+            ansible-galaxy collection build . --output-path /tmp/
+            ansible-galaxy collection install /tmp/ansible-utils-*.tar.gz -p /home/runner/collections --force
+          fi
+        if: ${{ !inputs.dry_run }}
 
       - name: Build and install the collection
         uses: ansible-network/github_actions/.github/actions/build_install_collection@main
@@ -132,12 +252,16 @@ jobs:
 
       - name: Create the lab title
         run: |
+          # Clean up matrix values by removing special characters
+          CLEAN_ANSIBLE_VERSION=$(echo "${{ matrix.ansible-version }}" | sed 's/[^a-zA-Z0-9]//g')
+          CLEAN_PYTHON_VERSION=$(echo "${{ matrix.python-version }}" | sed 's/[^a-zA-Z0-9]//g')
+
           if [[ "${{ github.event_name }}" == 'pull_request_target' ]]; then
-            echo "CLABTITLE=${{ inputs.lab_title }}_PR${{ github.event.pull_request.number }}" >> $GITHUB_ENV
+            echo "CLABTITLE=${{ inputs.lab_title }}_PR${{ github.event.pull_request.number }}_${CLEAN_ANSIBLE_VERSION}_py${CLEAN_PYTHON_VERSION}" >> $GITHUB_ENV
           elif [[ "${{ github.event_name }}" == 'workflow_dispatch' ]]; then
             shashort=$(git rev-parse --short HEAD)
             uuidval=$(uuidgen | cut -c 1-8)
-            echo "CLABTITLE=${{ inputs.lab_title }}_${shashort}_${uuidval}" >> $GITHUB_ENV
+            echo "CLABTITLE=${{ inputs.lab_title }}_${shashort}_${uuidval}_${CLEAN_ANSIBLE_VERSION}_py${CLEAN_PYTHON_VERSION}" >> $GITHUB_ENV
           fi
 
       - name: Print the lab title
@@ -180,5 +304,5 @@ jobs:
         if: ${{ !inputs.dry_run }}
         uses: coactions/upload-artifact@v4
         with:
-          name: logs
+          name: logs-${{ matrix.ansible-version }}-py${{ matrix.python-version }}
           path: /home/runner/test_logs/

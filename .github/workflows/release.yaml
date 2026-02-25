@@ -18,6 +18,10 @@ name: Release collection
     secrets:
       ah_token:
         required: false
+      ah_client_id:
+        required: false
+      ah_client_secret:
+        required: false
       ansible_galaxy_api_key:
         required: false
 jobs:
@@ -27,6 +31,8 @@ jobs:
       environment: release
     secrets:
       ah_token: "${{ secrets.ah_token }}"
+      ah_client_id: ${{ secrets.ah_client_id }}
+      ah_client_secret: ${{ secrets.ah_client_secret }}
   release_galaxy:
     uses: ansible/ansible-content-actions/.github/workflows/release_galaxy.yaml@main
     needs:

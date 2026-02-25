@@ -17,7 +17,7 @@ runs:
     # https://github.com/actions/runner/issues/1070
     - name: Fail early if no scope was provided for matrix generation
       if: ${{ inputs.test-env == '' }}
-      uses: actions/github-script@v3
+      uses: actions/github-script@v8
       with:
         script: |
           core.setFailed('The input test-env (e.g., unit-py3.9-2.14) is required for this action to run.')
@@ -30,7 +30,7 @@ runs:
         echo "py_version=$output" >> $GITHUB_OUTPUT
 
     - name: Set up Python
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v6
       with:
         python-version: "${{ steps.get-python-version.outputs.py_version}}"
 

@@ -1,0 +1,164 @@
+name: CML Wait for Topology Boot
+
+on:
+  workflow_call:
+    inputs:
+      topology_path:
+        description: Relative path to topology YAML in the repository
+        required: false
+        type: string
+        default: tests/integration/labs/multi.yaml
+      lab_title_override:
+        description: Optional lab title override; if empty uses PR title
+        required: false
+        type: string
+        default: ""
+    secrets:
+      virl_host:
+        required: false
+      virl_username:
+        required: false
+      virl_password:
+        required: false
+    outputs:
+      lab_nodes_json:
+        description: "JSON string of nodes with ansible_host"
+        value: ${{ jobs.create-topology.outputs.lab_nodes_json }}
+
+jobs:
+  create-topology:
+    runs-on: ubuntu-latest
+    if: ${{ !github.event.pull_request || contains(github.event.pull_request.labels.*.name, 'safe to test') }}
+    env:
+      PY_COLORS: "1"
+    outputs:
+      lab_nodes_json: ${{ steps.extract.outputs.lab_nodes_json }}
+    environment: integration
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Determine lab title
+        id: lab
+        shell: bash
+        run: |
+          set -euo pipefail
+          title="${{ inputs.lab_title_override }}"
+          if [[ -z "$title" && "${{ github.event_name }}" == "pull_request" ]]; then
+            title="${{ github.event.pull_request.title }}"
+          fi
+          if [[ -z "$title" ]]; then
+            title="${{ github.repository }}-${{ github.run_id }}"
+          fi
+          # sanitize: keep letters, numbers, spaces, dashes, underscores; collapse spaces
+          clean_title=$(sed -E 's/[^A-Za-z0-9 _-]+//g; s/[[:space:]]+/ /g; s/^ +| +$//g' <<<"$title")
+          echo "title=$clean_title" >> "$GITHUB_OUTPUT"
+
+      - name: Resolve topology path
+        id: topo
+        shell: bash
+        run: |
+          set -euo pipefail
+          topo_rel="${{ inputs.topology_path }}"
+          topo_abs="$GITHUB_WORKSPACE/$topo_rel"
+          if [[ ! -f "$topo_abs" ]]; then
+            echo "Topology file not found: $topo_abs" >&2
+            exit 1
+          fi
+          echo "path=$topo_abs" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+
+      - name: Install ansible and CML collection
+        shell: bash
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install ansible-core
+          python -m pip install virl2_client==2.7.1
+          ansible-galaxy collection install git+https://github.com/KB-perByte/cml.git
+
+      - name: Show Ansible version
+        run: ansible --version
+
+      - name: Create playbook
+        shell: bash
+        run: |
+          cat > cml_boot.yml <<'YAML'
+          ---
+          - name: Create CML lab for operation - {{ cml_lab }}
+            hosts: localhost
+            gather_facts: false
+            tasks:
+              - name: Create the lab
+                cisco.cml.cml_lab:
+                  host: "{{ cml_host }}"
+                  user: "{{ cml_username }}"
+                  password: "{{ cml_password }}"
+                  lab: "{{ cml_lab }}"
+                  state: started
+                  topology: "{{ lookup('template', topology_path) }}"
+                  wait: "yes"
+
+              - name: Sleep for 180 seconds and continue with play (needed)
+                ansible.builtin.wait_for:
+                  timeout: 180
+
+              - name: Collect Facts
+                cisco.cml.cml_lab_facts:
+                  host:  "{{ cml_host }}"
+                  user: "{{ cml_username }}"
+                  password: "{{ cml_password }}"
+                  lab: "{{ cml_lab }}"
+                register: lab_results
+
+              - name: Create simple facts with nodes and ansible_host
+                ansible.builtin.set_fact:
+                  simple_appliance_facts:
+                    nodes: >-
+                      {%- set result = {} -%}
+                      {%- for node_name, node_data in lab_results.cml_facts.nodes.items() -%}
+                        {%- if node_data.ansible_host is defined -%}
+                          {%- set _ = result.update({node_name: node_data.ansible_host}) -%}
+                        {%- endif -%}
+                      {%- endfor -%}
+                      {{ result }}
+
+              - name: Write outputs to files
+                ansible.builtin.copy:
+                  content: |
+                    {{ simple_appliance_facts | to_json }}
+                  dest: ./simple_appliance_facts.json
+          YAML
+
+      - name: Run playbook
+        shell: bash
+        env:
+          CML_HOST: ${{ secrets.VIRL_HOST }}
+          CML_USERNAME: ${{ secrets.VIRL_USERNAME }}
+          CML_PASSWORD: ${{ secrets.VIRL_PASSWORD }}
+          CML_LAB: ${{ steps.lab.outputs.title }}
+          CML_VERIFY_CERT: "false"
+        run: |
+          set -euo pipefail
+          echo "Starting lab: $CML_LAB using topology: ${{ steps.topo.outputs.path }}"
+          ansible-playbook cml_boot.yml \
+            -e cml_host="$CML_HOST" \
+            -e cml_username="$CML_USERNAME" \
+            -e cml_password="$CML_PASSWORD" \
+            -e cml_lab="$CML_LAB" \
+            -e topology_path="${{ steps.topo.outputs.path }}"
+
+      - name: Do CML data extraction
+        id: extract
+        run: |
+          # Read outputs and set as GitHub Action outputs
+          LAB_NODES_JSON=$(cat ./simple_appliance_facts.json)
+
+          echo "lab_nodes_json=${LAB_NODES_JSON}" >> $GITHUB_OUTPUT
+
+          # echo "Extracted nodes: ${LAB_NODES_JSON}"

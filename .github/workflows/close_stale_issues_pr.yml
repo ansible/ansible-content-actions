@@ -61,3 +61,6 @@ jobs:
           stale-pr-message: ${{ inputs.stale-pr-message }}
           close-issue-message: ${{ inputs.close-issue-message }}
           close-pr-message: ${{ inputs.close-pr-message }}
+          stale-issue-label: "stale"
+          stale-pr-label: "stale"
+          exempt-draft-pr: true

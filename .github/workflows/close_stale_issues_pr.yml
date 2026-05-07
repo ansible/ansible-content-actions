@@ -49,6 +49,8 @@ jobs:
     permissions:
       issues: write
       pull-requests: write
+      actions: write
+      contents: read
     steps:
       - name: Close stale issues and PRs
         uses: actions/stale@v10.2.0

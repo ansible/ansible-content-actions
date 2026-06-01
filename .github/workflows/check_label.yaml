@@ -15,8 +15,8 @@ jobs:
       pull-requests: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
-      - uses: release-drafter/release-drafter@v7
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: release-drafter/release-drafter@693d20e7c1ce1a81d3a41962f85914253b518449 # v7.3.1
         if: "${{ github.event_name == 'pull_request' }}"
         with:
           disable-autolabeler: false
@@ -26,7 +26,7 @@ jobs:
         continue-on-error: true
       - name: Verify PR label action
         if: "${{ github.event_name == 'pull_request' }}"
-        uses: jesusvasquez333/verify-pr-label-action@v1.4.0
+        uses: jesusvasquez333/verify-pr-label-action@657d111bbbe13e22bbd55870f1813c699bde1401 # v1.4.0
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
           valid-labels: >-
@@ -37,14 +37,14 @@ jobs:
           disable-reviews: true
       - name: Update release notes if this is already merged
         if: github.event.pull_request.merged == true
-        uses: release-drafter/release-drafter@v7
+        uses: release-drafter/release-drafter@693d20e7c1ce1a81d3a41962f85914253b518449 # v7.3.1
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
       - name: Add issue or pull-request to 'devtools' project
         env:
           BOT_PAT: "${{ secrets.BOT_PAT }}"
         if: env.BOT_PAT != null
-        uses: actions/add-to-project@main
+        uses: actions/add-to-project@5afcf98fcd03f1c2f92c3c83f58ae24323cc57fd # v2.0.0
         with:
           project-url: "https://github.com/orgs/ansible/projects/86"
           github-token: "${{ secrets.BOT_PAT }}"

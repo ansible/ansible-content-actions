@@ -27,7 +27,7 @@ jobs:
         with:
           python-version: ${{ env.python_version }}
 
-      - name: Install ansible-core 
+      - name: Install ansible-core
         run: python3 -m pip install ansible-core pytest pytest-cov pytest-ansible-units pytest-forked pytest-xdist
 
       - name: Read collection metadata from galaxy.yml

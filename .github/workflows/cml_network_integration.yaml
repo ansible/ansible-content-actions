@@ -18,7 +18,7 @@ on:
         default: libssh
       python-version:
         default: >-
-          3.12
+          3.13
         description: Python version to provision in the VM
         required: false
         type: string

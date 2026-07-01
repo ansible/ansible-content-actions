@@ -34,7 +34,7 @@ runs:
 
     - name: Set up Python
       if: inputs.setup_python == 'true'
-      uses: actions/setup-python@v6
+      uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
       with:
         cache: pip
         cache-dependency-path: ${{ inputs.working_directory }}/.git/ansible-lint-requirements.txt

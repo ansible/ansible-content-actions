@@ -26,7 +26,7 @@ name: Release collection
         required: false
 jobs:
   release_automation_hub:
-    uses: ansible/ansible-content-actions/.github/workflows/release_ah.yaml@main
+    uses: ./.github/workflows/release_ah.yaml
     with:
       environment: release
     secrets:
@@ -34,7 +34,7 @@ jobs:
       ah_client_id: ${{ secrets.ah_client_id }}
       ah_client_secret: ${{ secrets.ah_client_secret }}
   release_galaxy:
-    uses: ansible/ansible-content-actions/.github/workflows/release_galaxy.yaml@main
+    uses: ./.github/workflows/release_galaxy.yaml
     needs:
       - release_automation_hub
     with:

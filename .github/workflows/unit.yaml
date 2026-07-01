@@ -15,16 +15,16 @@ jobs:
     name: Matrix Unit
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: "${{github.event.pull_request.head.ref}}"
           repository: "${{ github.event.pull_request.head.repo.full_name }}"
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           python-version: "3.14"
       - name: "Check for tox-ansible.ini file, else add default"
-        uses: ansible/ansible-content-actions/.github/actions/add_tox_ansible@main
+        uses: ./.github/actions/add_tox_ansible
       - name: "Install tox-ansible, includes tox"
         run: "python -m pip install tox-ansible"
       - name: Generate matrix
@@ -57,18 +57,18 @@ jobs:
     name: "${{ matrix.entry.name }}"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: "${{ github.event.pull_request.head.sha }}"
           fetch-depth: 0
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
         with:
           python-version: "${{ matrix.entry.python }}"
       - name: "Install tox-ansible, includes tox"
         run: python -m pip install tox-ansible
       - name: "Check for tox-ansible.ini file, else add default"
-        uses: ansible/ansible-content-actions/.github/actions/add_tox_ansible@main
+        uses: ./.github/actions/add_tox_ansible
       - name: Install build toolchain and openssl headers on Linux
         shell: bash
         run: sudo apt update && sudo apt install build-essential libssl-dev

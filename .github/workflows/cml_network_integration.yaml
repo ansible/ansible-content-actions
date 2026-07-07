@@ -71,7 +71,7 @@ jobs:
         if: ${{ !contains(inputs.ansible_version, 'devel') && !contains(inputs.ansible_version, 'milestone') }}
 
       - name: Checkout ansible-core (${{ inputs.ansible_version }}) - Branch
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           repository: ansible/ansible
           ref: ${{ inputs.ansible_version }}

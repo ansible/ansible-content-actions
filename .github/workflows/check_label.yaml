@@ -15,7 +15,7 @@ jobs:
       pull-requests: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - uses: release-drafter/release-drafter@v7
         if: "${{ github.event_name == 'pull_request' }}"
         with:

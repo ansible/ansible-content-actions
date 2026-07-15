@@ -28,6 +28,7 @@ jobs:
       - name: Check out src from Git
         uses: actions/checkout@v7
         with:
+          allow-unsafe-pr-checkout: true
           fetch-depth: 0
           submodules: true
 

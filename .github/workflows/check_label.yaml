@@ -16,6 +16,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          allow-unsafe-pr-checkout: true
       - uses: release-drafter/release-drafter@v7
         if: "${{ github.event_name == 'pull_request' }}"
         with:

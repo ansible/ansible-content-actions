@@ -28,6 +28,7 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v7
         with:
+          allow-unsafe-pr-checkout: true
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.ref != '' && github.event.pull_request.head.ref || 'main' }}
@@ -66,6 +67,7 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v7
         with:
+          allow-unsafe-pr-checkout: true
           fetch-depth: 0
 
       - name: Fetch the base and head refs only if a push and release
@@ -184,6 +186,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          allow-unsafe-pr-checkout: true
 
       - name: Download Artifacts
         uses: actions/download-artifact@v8

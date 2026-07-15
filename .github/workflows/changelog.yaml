@@ -11,6 +11,7 @@ jobs:
       - name: Checkout the collection repository
         uses: actions/checkout@v7
         with:
+          allow-unsafe-pr-checkout: true
           ref: "${{ github.event.pull_request.head.sha }}"
           fetch-depth: "0"
       - name: Validate changelog

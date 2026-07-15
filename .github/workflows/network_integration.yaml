@@ -98,6 +98,7 @@ jobs:
       - name: Checkout ansible-core (${{ matrix.ansible-version }}) - Branch
         uses: actions/checkout@v7
         with:
+          allow-unsafe-pr-checkout: true
           repository: ansible/ansible
           ref: ${{ matrix.ansible-version }}
           path: ansible-core-source

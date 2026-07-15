@@ -18,6 +18,7 @@ runs:
   steps:
     - uses: actions/checkout@v7
       with:
+        allow-unsafe-pr-checkout: true
         submodules: true
 
     # `required: true` seems to be no-op for actions?

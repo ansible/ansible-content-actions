@@ -48,6 +48,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v7
         with:
+          allow-unsafe-pr-checkout: true
           fetch-depth: 0
           show-progress: false
 

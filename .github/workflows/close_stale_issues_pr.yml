@@ -12,6 +12,16 @@ on:
         type: number
         required: false
         default: 30
+      any-of-issue-labels:
+        description: "Only issues with at least one of these labels (comma-separated) are checked for staleness. Leave empty to check all issues."
+        type: string
+        required: false
+        default: ""
+      any-of-pr-labels:
+        description: "Only PRs with at least one of these labels (comma-separated) are checked for staleness. Leave empty to check all PRs."
+        type: string
+        required: false
+        default: ""
       exempt-issue-labels:
         description: "Comma-separated list of labels that exempt issues from being marked as stale"
         type: string
@@ -57,6 +67,8 @@ jobs:
         with:
           days-before-stale: ${{ inputs.days-before-stale }}
           days-before-close: ${{ inputs.days-before-close }}
+          any-of-issue-labels: ${{ inputs.any-of-issue-labels }}
+          any-of-pr-labels: ${{ inputs.any-of-pr-labels }}
           exempt-issue-labels: ${{ inputs.exempt-issue-labels }}
           exempt-pr-labels: ${{ inputs.exempt-pr-labels }}
           stale-issue-message: ${{ inputs.stale-issue-message }}

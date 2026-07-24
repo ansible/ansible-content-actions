@@ -1,0 +1,29 @@
+---
+name: "Remove needs_info label on reporter reply"
+
+on:
+  workflow_call:
+    inputs:
+      label:
+        description: "Label to remove when the reporter replies"
+        type: string
+        required: false
+        default: "needs_info"
+
+jobs:
+  remove_label:
+    if: >-
+      !github.event.issue.pull_request
+      && github.event.comment.user.login == github.event.issue.user.login
+      && contains(toJSON(github.event.issue.labels.*.name), inputs.label)
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - name: Remove label
+        run: gh issue edit "$ISSUE" --remove-label "$LABEL"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          ISSUE: ${{ github.event.issue.number }}
+          LABEL: ${{ inputs.label }}

@@ -20,7 +20,7 @@ jobs:
     name: Galaxy release
     environment: "${{ inputs.environment }}"
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Build the collection
         run: |
           ansible-galaxy collection build -v --force

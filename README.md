@@ -69,6 +69,7 @@ This combined GitHub Action covers the following action workflows:
 - Release Automation Hub - Push a release to Ansible Automation Hub only.
 - Draft Release - Generates changelog entries for release, also raises a PR with changelog and galaxy file updated.
 - Check Label - Check if a valid label added to the PR is required by the release drafter.
+- EE Build - Build and push Ansible Execution Environment images to a container registry.
 
 ## Licensing
 

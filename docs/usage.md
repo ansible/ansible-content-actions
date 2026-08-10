@@ -196,7 +196,7 @@ For GitHub Container Registry, pass `${{ github.actor }}` and `${{ secrets.GITHU
 
 ### Single EE (repository root)
 
-Filename: `ee-build.yaml`
+Filename: `ee-build.yml`
 
 ```
 ---

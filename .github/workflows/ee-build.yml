@@ -67,7 +67,7 @@ jobs:
 
   build-ee:
     outputs:
-      push_success: ${{ steps.push_to_registry.outputs.push_success }}
+      push_success: ${{ steps.set_push_success.outputs.push_success }}
     runs-on: ubuntu-latest
     environment: ${{ github.event_name }}
     steps:
@@ -133,9 +133,11 @@ jobs:
 
       - name: Build image and create artifact
         working-directory: ${{ inputs.working_directory }}
+        env:
+          AH_TOKEN: ${{ secrets.ah_token }}
         run: |
           ansible-builder build -v 3 \
-          --build-arg AH_TOKEN=${{ secrets.ah_token }} \
+          --build-arg AH_TOKEN="$AH_TOKEN" \
           --tag=${{ env.EE }}:${{ env.IMAGE_TAG }} \
           --tag=${{ env.EE }}:${{ github.sha }}
 
@@ -163,7 +165,7 @@ jobs:
               fi
             done
             echo "No collections installed"
-          ' >> "$COMMANDS_FILE" 2>&1 || true
+          ' >> "$COMMANDS_FILE" 2>&1
           echo "\`\`\`" >> "$COMMANDS_FILE"
           echo "" >> "$COMMANDS_FILE"
           echo "#### EE Testing" >> "$COMMANDS_FILE"
@@ -180,22 +182,20 @@ jobs:
               fi
             done
             echo "No collections installed"
-          ' >> "$COMMANDS_FILE" 2>&1 || true
+          ' >> "$COMMANDS_FILE" 2>&1
           echo "\`\`\`" >> "$COMMANDS_FILE"
           echo "" >> "$COMMANDS_FILE"
           echo "\`\`\`" >> "$COMMANDS_FILE"
           echo "Installed images" >> "$COMMANDS_FILE"
-          podman images --format "{{.Repository}}:{{.Tag}}" | grep "^${{ env.EE }}:" >> "$COMMANDS_FILE" 2>&1 || true
+          podman images --format "{{.Repository}}:{{.Tag}}" | grep "^${{ env.EE }}:" >> "$COMMANDS_FILE" 2>&1
           echo "\`\`\`" >> "$COMMANDS_FILE"
           echo "" >> "$COMMANDS_FILE"
           echo "#### Ansible version" >> "$COMMANDS_FILE"
           echo "" >> "$COMMANDS_FILE"
           echo "\`\`\`" >> "$COMMANDS_FILE"
-          podman run --rm ${{ env.EE }}:${{ env.IMAGE_TAG }} ansible --version >> "$COMMANDS_FILE" 2>&1 || true
+          podman run --rm ${{ env.EE }}:${{ env.IMAGE_TAG }} ansible --version >> "$COMMANDS_FILE" 2>&1
           echo "\`\`\`" >> "$COMMANDS_FILE"
           echo "</details>" >> "$COMMANDS_FILE"
-
-          set -e
 
       - name: Upload build artifact
         uses: coactions/upload-artifact@v4
@@ -219,8 +219,9 @@ jobs:
           registry: ${{ env.IMAGE_REGISTRY }}/${{ github.repository_owner }}
 
       - name: Set push success flag
+        id: set_push_success
         if: success()
-        run: echo "push_success=true" >> $GITHUB_ENV
+        run: echo "push_success=true" >> $GITHUB_OUTPUT
 
       - name: Print summary
         run: |

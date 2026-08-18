@@ -120,7 +120,7 @@ jobs:
 
       - name: Login to registry.redhat.io
         if: steps.redhat_registry.outputs.enabled == 'true'
-        uses: redhat-actions/podman-login@v1
+        uses: redhat-actions/podman-login@v2
         with:
           registry: registry.redhat.io
           username: ${{ secrets.registry_redhat_username }}
@@ -204,7 +204,7 @@ jobs:
           path: ${{ inputs.working_directory }}/commands-${{ env.EE }}.txt
 
       - name: Login to container registry
-        uses: redhat-actions/podman-login@v1
+        uses: redhat-actions/podman-login@v2
         with:
           registry: ${{ env.IMAGE_REGISTRY }}
           username: ${{ secrets.registry_username }}
@@ -212,7 +212,7 @@ jobs:
 
       - name: Push to container registry
         id: push_to_registry
-        uses: redhat-actions/push-to-registry@v2
+        uses: redhat-actions/push-to-registry@v3
         with:
           image: ${{ env.EE }}
           tags: ${{ env.IMAGE_TAG }}

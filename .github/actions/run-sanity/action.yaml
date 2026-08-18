@@ -30,7 +30,7 @@ runs:
         echo "py_version=$output" >> $GITHUB_OUTPUT
 
     - name: Set up Python
-      uses: actions/setup-python@v6
+      uses: actions/setup-python@v7
       with:
         python-version: "${{ steps.get-python-version.outputs.py_version}}"
 

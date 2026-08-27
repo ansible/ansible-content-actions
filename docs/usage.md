@@ -170,3 +170,98 @@ The GitHub action uses tox-ansible which requires a tox-ansible.ini, a default t
 - `tests/integration/requirements.yml`
 - `tests/unit/requirements.yml`
 - [`galaxy.yml`](https://docs.ansible.com/ansible/latest/dev_guide/collections_galaxy_meta.html)
+
+## The EE build workflow
+
+This reusable workflow builds an Ansible Execution Environment image from an `execution-environment.yml` file, pushes it to a container registry, and posts pull request comments with usage instructions.
+
+By default, the workflow looks for `execution-environment.yml` in the repository root. Use the `working_directory` input to build EEs that live in subdirectories, which enables matrix builds for monorepos with multiple execution environments.
+
+### Secrets
+
+| Secret                     | Required | Purpose                                                          |
+| -------------------------- | -------- | ---------------------------------------------------------------- |
+| `registry_username`        | yes      | Username for the destination registry login before push          |
+| `registry_password`        | yes      | Password or token for the destination registry login before push |
+| `registry_redhat_username` | no       | Username for `registry.redhat.io` login before build             |
+| `registry_redhat_password` | no       | Password or token for `registry.redhat.io` login before build    |
+| `ah_token`                 | no       | Automation Hub token passed to `ansible-builder` as `AH_TOKEN`   |
+
+The workflow performs two separate logins when needed:
+
+1. **Before build** — logs in to `registry.redhat.io` when Red Hat credentials are provided, so base images can be pulled during `ansible-builder build`.
+2. **Before push** — logs in to the destination registry from the `registry` input using `registry_username` and `registry_password`.
+
+For GitHub Container Registry, pass `${{ github.actor }}` and `${{ secrets.GITHUB_TOKEN }}` as the registry credentials.
+
+### Single EE (repository root)
+
+Filename: `ee-build.yml`
+
+```
+---
+name: "Build execution environment"
+on:
+  pull_request_target:
+    branches: [main]
+  push:
+    branches: [main]
+  release:
+    types: [published]
+
+jobs:
+  build-ee:
+    uses: ansible/ansible-content-actions/.github/workflows/ee-build.yml@main
+    with:
+      registry: ghcr.io
+    secrets:
+      registry_username: ${{ github.actor }}
+      registry_password: ${{ secrets.GITHUB_TOKEN }}
+      registry_redhat_username: ${{ secrets.REGISTRY_REDHAT_USERNAME }}
+      registry_redhat_password: ${{ secrets.REGISTRY_REDHAT_PASSWORD }}
+      ah_token: ${{ secrets.AH_TOKEN }}
+```
+
+`registry_redhat_*` and `ah_token` are optional. Omit them when the build does not pull from Red Hat registries or install from Automation Hub.
+
+### Multiple EEs (matrix)
+
+For repositories that contain more than one execution environment, define a matrix caller workflow that passes each EE's folder path via `working_directory`.
+
+Filename: `build-all-ees.yaml`
+
+```
+---
+name: "Build all execution environments"
+on:
+  pull_request_target:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  build-matrix:
+    name: Build ${{ matrix.ee-name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - ee-name: network-ee
+            folder: ./network-ee
+          - ee-name: cloud-ee
+            folder: ./cloud-ee
+    uses: ansible/ansible-content-actions/.github/workflows/ee-build.yml@main
+    with:
+      registry: ghcr.io
+      working_directory: ${{ matrix.folder }}
+    secrets:
+      registry_username: ${{ github.actor }}
+      registry_password: ${{ secrets.GITHUB_TOKEN }}
+      registry_redhat_username: ${{ secrets.REGISTRY_REDHAT_USERNAME }}
+      registry_redhat_password: ${{ secrets.REGISTRY_REDHAT_PASSWORD }}
+      ah_token: ${{ secrets.AH_TOKEN }}
+```
+
+`registry_redhat_*` and `ah_token` are optional. Omit them when the build does not pull from Red Hat registries or install from Automation Hub.
+
+Each matrix entry runs an independent build against the `execution-environment.yml` in its folder. Artifacts are named per EE image tag, so pull request comments list every built image.

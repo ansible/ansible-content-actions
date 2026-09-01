@@ -10,6 +10,24 @@ name: Ansible Unit
       extra_matrix_entries:
         required: false
         type: string
+      galaxy_server_url:
+        description: >-
+          URL of an additional Galaxy server (e.g. Automation Hub).
+          When set, the server is registered as "certified" and placed
+          before the default Galaxy server in ANSIBLE_GALAXY_SERVER_LIST.
+        required: false
+        type: string
+      galaxy_server_auth_url:
+        description: >-
+          SSO / token endpoint for the additional Galaxy server
+          (e.g. the Red Hat SSO endpoint for Automation Hub).
+        required: false
+        type: string
+    secrets:
+      galaxy_server_token:
+        description: >-
+          Auth token for the additional Galaxy server.
+        required: false
 jobs:
   tox-matrix:
     name: Matrix Unit
@@ -83,3 +101,8 @@ jobs:
           tox-ansible.ini
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          ANSIBLE_GALAXY_SERVER_LIST: >-
+            ${{ inputs.galaxy_server_url != '' && 'certified,galaxy' || '' }}
+          ANSIBLE_GALAXY_SERVER_CERTIFIED_URL: ${{ inputs.galaxy_server_url }}
+          ANSIBLE_GALAXY_SERVER_CERTIFIED_TOKEN: ${{ secrets.galaxy_server_token }}
+          ANSIBLE_GALAXY_SERVER_CERTIFIED_AUTH_URL: ${{ inputs.galaxy_server_auth_url }}

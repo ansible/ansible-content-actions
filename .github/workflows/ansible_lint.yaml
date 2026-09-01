@@ -23,7 +23,7 @@ jobs:
     name: Ansible Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: "${{github.event.pull_request.head.ref}}"
           repository: "${{ github.event.pull_request.head.repo.full_name }}"
@@ -38,7 +38,7 @@ jobs:
           fi
       - name: Set up Python
         if: inputs.setup_python == 'true'
-        uses: actions/setup-python@v7
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
         with:
           cache: pip
           cache-dependency-path: ${{ steps.inputs.outputs.working_directory }}/.git/ansible-lint-requirements.txt

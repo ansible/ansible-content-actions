@@ -68,7 +68,7 @@ jobs:
     name: "Integration Tests - Python ${{ matrix.python-version }} / Ansible ${{ matrix.ansible-version }} / ${{ matrix.dependency-source }}"
     steps:
       - name: Checkout the collection repository
-        uses: ansible-network/github_actions/.github/actions/checkout_dependency@main
+        uses: ansible-network/github_actions/.github/actions/checkout_dependency@4678c74a7d712d55e663c88f66eec6d9c3642550 # main
         with:
           path: ${{ env.source_directory }}
           ref: ${{ github.event.pull_request.head.sha }}
@@ -76,7 +76,7 @@ jobs:
         if: ${{ !inputs.dry_run }}
 
       - name: Checkout the collection repository
-        uses: ansible-network/github_actions/.github/actions/checkout_dependency@main
+        uses: ansible-network/github_actions/.github/actions/checkout_dependency@4678c74a7d712d55e663c88f66eec6d9c3642550 # main
         with:
           repository: ${{ inputs.dry_run_repo }}
           path: ${{ env.source_directory }}
@@ -84,7 +84,7 @@ jobs:
         if: ${{ inputs.dry_run }}
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v7
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -96,7 +96,7 @@ jobs:
         if: ${{ !contains(matrix.ansible-version, 'devel') && !contains(matrix.ansible-version, 'milestone') }}
 
       - name: Checkout ansible-core (${{ matrix.ansible-version }}) - Branch
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           repository: ansible/ansible
           ref: ${{ matrix.ansible-version }}
@@ -148,7 +148,7 @@ jobs:
         if: ${{ !inputs.dry_run }}
 
       - name: Checkout ansible.netcommon dependency PR
-        uses: ansible-network/github_actions/.github/actions/checkout_dependency@main
+        uses: ansible-network/github_actions/.github/actions/checkout_dependency@4678c74a7d712d55e663c88f66eec6d9c3642550 # main
         with:
           repository: ansible-collections/ansible.netcommon
           ref: refs/pull/${{ steps.parse_dependencies.outputs.netcommon_pr }}/head
@@ -157,7 +157,7 @@ jobs:
         if: ${{ !inputs.dry_run && steps.parse_dependencies.outputs.netcommon_pr != '' }}
 
       - name: Checkout ansible.utils dependency PR
-        uses: ansible-network/github_actions/.github/actions/checkout_dependency@main
+        uses: ansible-network/github_actions/.github/actions/checkout_dependency@4678c74a7d712d55e663c88f66eec6d9c3642550 # main
         with:
           repository: ansible-collections/ansible.utils
           ref: refs/pull/${{ steps.parse_dependencies.outputs.utils_pr }}/head
@@ -200,7 +200,7 @@ jobs:
 
       - name: Read collection metadata from galaxy.yml
         id: identify
-        uses: ansible-network/github_actions/.github/actions/identify_collection@main
+        uses: ansible-network/github_actions/.github/actions/identify_collection@4678c74a7d712d55e663c88f66eec6d9c3642550 # main
         with:
           source_path: ${{ env.source_directory }}
 
@@ -223,7 +223,7 @@ jobs:
         if: ${{ !inputs.dry_run }}
 
       - name: Build and install the collection
-        uses: ansible-network/github_actions/.github/actions/build_install_collection@main
+        uses: ansible-network/github_actions/.github/actions/build_install_collection@4678c74a7d712d55e663c88f66eec6d9c3642550 # main
         with:
           install_python_dependencies: true
           source_path: ${{ env.source_directory }}
@@ -302,7 +302,7 @@ jobs:
 
       - name: Upload logs
         if: ${{ !inputs.dry_run }}
-        uses: coactions/upload-artifact@v4
+        uses: coactions/upload-artifact@ec1957e16e4ecd304d3a115907ccb4ba5f636e9d # v4
         with:
           name: logs-${{ matrix.ansible-version }}-py${{ matrix.python-version }}
           path: /home/runner/test_logs/

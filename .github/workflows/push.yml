@@ -10,4 +10,4 @@ name: push
 
 jobs:
   ack:
-    uses: ansible/team-devtools/.github/workflows/push.yml@main
+    uses: ansible/team-devtools/.github/workflows/push.yml@013bf292b41670713a2dee5817761f5ea5a989b4 # main

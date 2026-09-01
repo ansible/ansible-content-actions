@@ -41,7 +41,7 @@ jobs:
       - name: "Install tox-ansible, includes tox"
         run: "python -m pip install tox-ansible"
       - name: "Check for tox-ansible.ini file, else add default"
-        uses: ./.github/actions/add_tox_ansible
+        uses: ansible/ansible-content-actions/.github/actions/add_tox_ansible@4d3858fdf3d9bd4cdbc69d6217dd1cd944a7609e # main
       - name: Generate matrix
         id: generate-matrix
         run: >
@@ -83,7 +83,7 @@ jobs:
       - name: "Install tox-ansible, includes tox"
         run: python -m pip install tox-ansible
       - name: "Check for tox-ansible.ini file, else add default"
-        uses: ./.github/actions/add_tox_ansible
+        uses: ansible/ansible-content-actions/.github/actions/add_tox_ansible@4d3858fdf3d9bd4cdbc69d6217dd1cd944a7609e # main
       - name: Run tox sanity tests
         run: >-
           python -m tox --ansible -e ${{ matrix.entry.name }} --conf

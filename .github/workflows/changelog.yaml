@@ -14,5 +14,4 @@ jobs:
           ref: "${{ github.event.pull_request.head.sha }}"
           fetch-depth: "0"
       - name: Validate changelog
-        uses: >-
-          ./.github/actions/ansible_validate_changelog
+        uses: ansible/ansible-content-actions/.github/actions/ansible_validate_changelog@4d3858fdf3d9bd4cdbc69d6217dd1cd944a7609e # main

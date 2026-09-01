@@ -34,7 +34,7 @@ jobs:
     environment: test
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           fetch-depth: 0
@@ -72,7 +72,7 @@ jobs:
     environment: ${{ github.event_name }}
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           fetch-depth: 0
 
@@ -120,7 +120,7 @@ jobs:
 
       - name: Login to registry.redhat.io
         if: steps.redhat_registry.outputs.enabled == 'true'
-        uses: redhat-actions/podman-login@v2
+        uses: redhat-actions/podman-login@50c2d9a331bb67c8fdab99b86455fad05e2e3252 # v2
         with:
           registry: registry.redhat.io
           username: ${{ secrets.registry_redhat_username }}
@@ -198,13 +198,13 @@ jobs:
           echo "</details>" >> "$COMMANDS_FILE"
 
       - name: Upload build artifact
-        uses: coactions/upload-artifact@v4
+        uses: coactions/upload-artifact@ec1957e16e4ecd304d3a115907ccb4ba5f636e9d # v4
         with:
           name: commands-${{ env.EE }}
           path: ${{ inputs.working_directory }}/commands-${{ env.EE }}.txt
 
       - name: Login to container registry
-        uses: redhat-actions/podman-login@v2
+        uses: redhat-actions/podman-login@50c2d9a331bb67c8fdab99b86455fad05e2e3252 # v2
         with:
           registry: ${{ env.IMAGE_REGISTRY }}
           username: ${{ secrets.registry_username }}
@@ -212,7 +212,7 @@ jobs:
 
       - name: Push to container registry
         id: push_to_registry
-        uses: redhat-actions/push-to-registry@v3
+        uses: redhat-actions/push-to-registry@94ade333c38ecc0e60e94785125d9a52ca423b37 # v3
         with:
           image: ${{ env.EE }}
           tags: ${{ env.IMAGE_TAG }}
@@ -235,13 +235,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Download Artifacts
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
 
       - name: Post Comment
-        uses: actions/github-script@v9
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
         with:
           script: |
             const fs = require('fs');

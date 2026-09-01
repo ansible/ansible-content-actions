@@ -16,13 +16,13 @@ jobs:
     runs-on: ubuntu-latest
     environment: push
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           repository: "${{ inputs.repo }}"
           fetch-depth: 0
           token: "${{ secrets.BOT_PAT }}"
       - name: Set up Python
-        uses: actions/setup-python@v7
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
         with:
           python-version: "3.14"
       - name: "Install antsibull-changelog, antsichaut"
@@ -32,7 +32,7 @@ jobs:
           --disable-pip-version-check
       - name: Run release drafter
         id: release_drafter
-        uses: release-drafter/release-drafter@v7
+        uses: release-drafter/release-drafter@34d80673e067bdc0c24568d3af899c216adcfaa9 # v7
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
       - name: Remove the v prefix from the release drafter version
@@ -43,7 +43,7 @@ jobs:
         run: 'antsibull-changelog release -v --version "${{ env.VERSION }}"'
       - name: Get previous tag
         id: previoustag
-        uses: WyriHaximus/github-action-get-previous-tag@master
+        uses: WyriHaximus/github-action-get-previous-tag@2df46c7f3054f28f5cbc9b415c216de80ac1b756 # master
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
       - name: Generate changelog.yaml

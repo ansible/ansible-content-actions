@@ -44,7 +44,7 @@ jobs:
         env:
           BOT_PAT: "${{ secrets.BOT_PAT }}"
         if: env.BOT_PAT != null
-        uses: actions/add-to-project@c02d162cc960fe89745fcbc0053f3cce2c609043 # main
+        uses: actions/add-to-project@cea7931c6e5a8492f8d26ad2d485b18bd1c95712 # main
         with:
           project-url: "https://github.com/orgs/ansible/projects/86"
           github-token: "${{ secrets.BOT_PAT }}"

@@ -42,7 +42,7 @@ jobs:
         with:
           cache: pip
           cache-dependency-path: ${{ steps.inputs.outputs.working_directory }}/.git/ansible-lint-requirements.txt
-          python-version: "3.14"
+          python-version: "3.15"
       - name: Install ansible-lint from pip
         shell: bash
         run: |

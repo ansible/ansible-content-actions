@@ -16,7 +16,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-      - uses: release-drafter/release-drafter@34d80673e067bdc0c24568d3af899c216adcfaa9 # v7
+      - uses: release-drafter/release-drafter@978bb0b30c5ee8cdd332ced253758157150d43f0 # v7
         if: "${{ github.event_name == 'pull_request' }}"
         with:
           disable-autolabeler: false
@@ -37,14 +37,14 @@ jobs:
           disable-reviews: true
       - name: Update release notes if this is already merged
         if: github.event.pull_request.merged == true
-        uses: release-drafter/release-drafter@34d80673e067bdc0c24568d3af899c216adcfaa9 # v7
+        uses: release-drafter/release-drafter@978bb0b30c5ee8cdd332ced253758157150d43f0 # v7
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
       - name: Add issue or pull-request to 'devtools' project
         env:
           BOT_PAT: "${{ secrets.BOT_PAT }}"
         if: env.BOT_PAT != null
-        uses: actions/add-to-project@cea7931c6e5a8492f8d26ad2d485b18bd1c95712 # main
+        uses: actions/add-to-project@10852874378313643e82f7be4d23615b23a22d99 # main
         with:
           project-url: "https://github.com/orgs/ansible/projects/86"
           github-token: "${{ secrets.BOT_PAT }}"

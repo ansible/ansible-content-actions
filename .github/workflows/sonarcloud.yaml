@@ -52,7 +52,7 @@ jobs:
           show-progress: false
 
       - name: Set up Python ${{ inputs.python_version }}
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
         with:
           python-version: ${{ inputs.python_version }}
 
@@ -104,7 +104,7 @@ jobs:
         run: ${{ inputs.test_command }}
 
       - name: SonarCloud Scan
-        uses: SonarSource/sonarqube-scan-action@ba9859eae8dd6bd29e412f25ddbbef3d032000f4 # master
+        uses: SonarSource/sonarqube-scan-action@2ee10424dc885fe18ce449af6fde7a07fe49cd38 # master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

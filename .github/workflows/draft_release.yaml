@@ -22,9 +22,9 @@ jobs:
           fetch-depth: 0
           token: "${{ secrets.BOT_PAT }}"
       - name: Set up Python
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
         with:
-          python-version: "3.14"
+          python-version: "3.15"
       - name: "Install antsibull-changelog, antsichaut"
         run: >
           python -m pip install antsibull-changelog
@@ -32,7 +32,7 @@ jobs:
           --disable-pip-version-check
       - name: Run release drafter
         id: release_drafter
-        uses: release-drafter/release-drafter@34d80673e067bdc0c24568d3af899c216adcfaa9 # v7
+        uses: release-drafter/release-drafter@978bb0b30c5ee8cdd332ced253758157150d43f0 # v7
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
       - name: Remove the v prefix from the release drafter version

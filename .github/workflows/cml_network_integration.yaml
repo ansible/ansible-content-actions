@@ -40,14 +40,14 @@ jobs:
       ANSIBLE_COLLECTIONS_PATHS: "/home/runner/collections:~/.ansible/collections:/usr/share/ansible/collections"
     steps:
       - name: Checkout the collection repository
-        uses: ansible-network/github_actions/.github/actions/checkout_dependency@4678c74a7d712d55e663c88f66eec6d9c3642550 # main
+        uses: ansible-network/github_actions/.github/actions/checkout_dependency@e6c3ee8869da8d683fe04cb798d6830ec874f95f # main
         with:
           path: ${{ env.source_directory }}
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: "0"
 
       - name: Set up Python ${{ inputs.python-version }}
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
         with:
           python-version: ${{ inputs.python-version }}
 
@@ -88,12 +88,12 @@ jobs:
 
       - name: Read collection metadata from galaxy.yml
         id: identify
-        uses: ansible-network/github_actions/.github/actions/identify_collection@4678c74a7d712d55e663c88f66eec6d9c3642550 # main
+        uses: ansible-network/github_actions/.github/actions/identify_collection@e6c3ee8869da8d683fe04cb798d6830ec874f95f # main
         with:
           source_path: ${{ env.source_directory }}
 
       - name: Build and install the collection
-        uses: ansible-network/github_actions/.github/actions/build_install_collection@4678c74a7d712d55e663c88f66eec6d9c3642550 # main
+        uses: ansible-network/github_actions/.github/actions/build_install_collection@e6c3ee8869da8d683fe04cb798d6830ec874f95f # main
         with:
           install_python_dependencies: true
           source_path: ${{ env.source_directory }}
